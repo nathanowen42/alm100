@@ -17,7 +17,10 @@ if [ ! -d $UBOOT_DIR ]; then
 		echo "$UBOOT_DIR directory not found.  Script will exit..."
 		exit
 	else
-		echo $UBOOT_DIR > .gitignore
+		grep -q -F $UBOOT_DIR .gitignore || 
+		{ 
+			echo $UBOOT_DIR >> .gitignore
+		}
 	fi
 fi
 
