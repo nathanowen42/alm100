@@ -3,9 +3,12 @@
 #Based on http://processors.wiki.ti.com/index.php/Linux_Core_U-Boot_User's_Guide
 #
 
+TOPDIR=$(pwd)
 KERNEL_DIR=linux-stable
 GIT_REPO=https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+KERNEL_CONFIG_FILE=tisdk_am335x-evm_defconfig
 
+echo topdir is $TOPDIR
 if [ ! -d $KERNEL_DIR ]; then 
 	echo "kernel repo not found, attempting to clone from remote"
 	git clone $GIT_REPO $KERNEL_DIR || 
@@ -47,6 +50,11 @@ if [ "$branch_name" != "$latest_branch" ]; then
 		branch_name=$latest_branch
 	fi
 fi
+
+cp -f $TOPDIR/configurations/$KERNEL_CONFIG_FILE ./arch/arm/configs/$KERNEL_CONFIG_FILE
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- mrproper
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- $KERNEL_CONFIG_FILE
+
 
 #make mrproper
 #{
