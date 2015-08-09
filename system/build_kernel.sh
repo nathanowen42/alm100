@@ -1,11 +1,13 @@
 #!/bin/bash
 #Written by Nathan Owen - nathanowen42@gmail.com
 #Based on http://processors.wiki.ti.com/index.php/Linux_Core_U-Boot_User's_Guide
-#
+#With some code adopted from Robert Nelson's stable-kernel build script  - https://github.com/RobertCNelson/stable-kernel
 
 TOPDIR=$(pwd)
-KERNEL_DIR=linux-stable
-GIT_REPO=https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+#KERNEL_DIR=linux-stable
+#GIT_REPO=https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+KERNEL_DIR=ti-linux-kernel
+GIT_REPO=git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git
 KERNEL_CONFIG=omap2plus_defconfig
 CC=arm-linux-gnueabihf-
 
@@ -36,6 +38,8 @@ fetch_repo_if_needed () {
 			cd ..
 		fi
 	fi
+
+	cd ${TOPDIR}
 }
 
 update_repo_if_needed () {
@@ -57,25 +61,41 @@ update_repo_if_needed () {
 			branch_name=$latest_branch
 		fi
 	fi
+
+	cd ${TOPDIR}
 }
 
 load_defconfig () {
 	cd ${TOPDIR}/${KERNEL_DIR}
 	make ARCH=arm CROSS_COMPILE="${CC}" distclean
 	make ARCH=arm CROSS_COMPILE="${CC}" ${KERNEL_CONFIG}
-	#cp -v .config ${DIR}/patches/ref_${config}
-	#cp -v ${DIR}/patches/defconfig .config
-	cd ${DIR}
+	cd ${TOPDIR}
+}
+
+make_menuconfig () {
+	cd ${TOPDIR}/${KERNEL_DIR}
+	make ARCH=arm CROSS_COMPILE="${CC}" menuconfig
+	cp -v .config ${TOPDIR}/patches/defconfig
+	cd ${TOPDIR}
 }
 
 make_kernel () {
 	cd ${TOPDIR}/${KERNEL_DIR}
 	make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" ${address} ${image} modules
+	cd ${TOPDIR}
 }
 
 fetch_repo_if_needed
 update_repo_if_needed
-load_defconfig
+
+if [ "$1" == "menuconfig" ] ; then
+	make_menuconfig
+elif [ "$1" == "defconfig" ] ; then
+	load_defconfig
+else
+	cp ${TOPDIR}/patches/defconfig ${TOPDIR}/$KERNEL_DIR/.config
+fi
+
 make_kernel
 
 #cp -f $TOPDIR/configurations/$KERNEL_CONFIG_FILE ./arch/arm/configs/$KERNEL_CONFIG_FILE
