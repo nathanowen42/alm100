@@ -1,0 +1,5 @@
+######.uImage		The kernel image compressed to a uImage, understood by u-boot
+config-#######		The kernel configuration file
+u-boot			ELF image that contains debug symbols
+u-boot-spl		Full SPL image containing all debug symbols. Too big for internal memory but can be used to load the symbols
+u-boot-spl.bin		stripped binary SPL image that can fit into the internal memory
