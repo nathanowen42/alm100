@@ -10,6 +10,10 @@ KERNEL_DIR=ti-linux-kernel
 GIT_REPO=git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git
 KERNEL_CONFIG=omap2plus_defconfig
 CC=arm-linux-gnueabihf-
+LOADADDR=0x80008000
+
+#max number of threads to use (setting too high overloads and crashes)
+CORES=10
 
 fetch_repo_if_needed () {
 
@@ -80,8 +84,46 @@ make_menuconfig () {
 }
 
 make_kernel () {
+	image="uImage"
+	address="LOADADDR=$LOADADDR"
+
 	cd ${TOPDIR}/${KERNEL_DIR}
 	make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" ${address} ${image} modules
+
+	unset DTBS
+	cat ${TOPDIR}/${KERNEL_DIR}/arch/arm/Makefile | grep "dtbs:" >/dev/null 2>&1 && DTBS=enable
+
+	#FIXME: Starting with v3.15-rc0
+	unset has_dtbs_install
+	if [ "x${DTBS}" = "x" ] ; then
+		cat ${TOPDIR}/${KERNEL_DIR}/arch/arm/Makefile | grep "dtbs dtbs_install:" >/dev/null 2>&1 && DTBS=enable
+		if [ "x${DTBS}" = "xenable" ] ; then
+			has_dtbs_install=enable
+		fi
+	fi
+
+	if [ "x${DTBS}" = "xenable" ] ; then
+		echo "-----------------------------"
+		echo "make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" dtbs"
+		echo "-----------------------------"
+		make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" dtbs
+		ls arch/arm/boot/* | grep dtb >/dev/null 2>&1 || unset DTBS
+	fi
+
+	KERNEL_UTS=$(cat ${TOPDIR}/${KERNEL_DIR}/include/generated/utsrelease.h | awk '{print $3}' | sed 's/\"//g' )
+
+	echo "Kernel uts is $KERNEL_UTS"
+
+	if [ -f "${TOPDIR}/deploy/${KERNEL_UTS}.${image}" ] ; then
+		rm -rf "${TOPDIR}/deploy/${KERNEL_UTS}.${image}" || true
+		rm -rf "${TOPDIR}/deploy/config-${KERNEL_UTS}" || true
+	fi
+
+	if [ -f ./arch/arm/boot/${image} ] ; then
+		cp -v arch/arm/boot/${image} "${TOPDIR}/deploy/${KERNEL_UTS}.${image}"
+		cp -v .config "${TOPDIR}/deploy/config-${KERNEL_UTS}"
+	fi
+
 	cd ${TOPDIR}
 }
 
