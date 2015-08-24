@@ -3,14 +3,14 @@
 #Adds required packages, compatable with Ubuntu 15.04
 
 #get cross compiler
-apt-get install gcc-arm-linux-gnueabihf
+apt-get -y install gcc-arm-linux-gnueabihf
 
 #get u-boot tools (for mkimage to build kernel uImage)
-apt-get install u-boot-tools
+apt-get -y install u-boot-tools
 
 #install 32 bit libs
-sudo apt-get install lib32z1
-sudo apt-get install lib32ncurses5
+sudo apt-get -y install lib32z1
+sudo apt-get -y install lib32ncurses5
 
 #get ncurses (needed for menuconfig)
-sudo apt-get install ncurses-dev
+sudo apt-get -y install ncurses-dev
