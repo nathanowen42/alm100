@@ -11,3 +11,4 @@ Included Scripts:
 build_kernel.sh - clones and builds the latest stable kernel relase (by default from ti's repo, also works with kernel.org's repo)
 build_uboot.sh - clones and builds the latest ti uboot
 
+When the kernel is upgraded you must run with the defconfig option and then edit the config as needed.
