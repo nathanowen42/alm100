@@ -15,5 +15,6 @@ sudo apt-get -y install lib32ncurses5
 #get ncurses (needed for menuconfig)
 sudo apt-get -y install ncurses-dev
 
-#cross compiler for busybox
+#for busybox
 sudo apt-get install gcc-arm-linux-gnueabi
+apt-get install gawk
