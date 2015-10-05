@@ -1,0 +1,14 @@
+Written by Nathan Owen - nathanowen42@gmail.com
+Please email me for any issues or concerns.
+
+All build scrpts are compatable with Ubuntu 15.04
+Other dirstros may require modifications to build scripts
+
+Before running build scrpts, run setup_build_environment.sh script to install required packages
+
+Included Scripts:
+
+build_kernel.sh - clones and builds the latest stable kernel relase (by default from ti's repo, also works with kernel.org's repo)
+build_uboot.sh - clones and builds the latest ti uboot
+
+When the kernel is upgraded you must run with the defconfig option and then edit the config as needed.
