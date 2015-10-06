@@ -4,3 +4,6 @@
 [submodule "opensource/busybox/busybox"]
 	path = opensource/busybox/busybox
 	url = git://busybox.net/busybox.git
+[submodule "opensource/uboot/ti-u-boot"]
+	path = opensource/uboot/ti-u-boot
+	url = git://git.ti.com/ti-u-boot/ti-u-boot.git
