@@ -1,3 +1,6 @@
 [submodule "alm100/opensource/qt"]
 	path = opensource/qt/qt
 	url = git://code.qt.io/qt/qt.git
+[submodule "opensource/busybox/busybox"]
+	path = opensource/busybox/busybox
+	url = git://busybox.net/busybox.git
