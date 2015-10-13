@@ -7,3 +7,6 @@
 [submodule "opensource/qt/qt"]
 	path = opensource/qt/qt
 	url = git://code.qt.io/qt/qt.git
+[submodule "opensource/linux/ti-linux-kernel"]
+	path = opensource/linux/ti-linux-kernel
+	url = git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git
