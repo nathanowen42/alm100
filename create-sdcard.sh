@@ -45,6 +45,16 @@ export LANG=C
 PWD=`pwd`
 EXE=`echo $0 | sed s=$PWD==`
 EXEPATH="$PWD"/"$EXE"
+
+#load file locations
+RELEASES=`pwd`/releases
+BOOT_DIR=${RELEASES}/boot
+UBOOT_IMAGE_FILE=${BOOT_DIR}/uboot
+UBOOT_BINARY_FILE=${BOOT_DIR}/uboot-spl.bin
+UENV_FILE=
+MLO_FILE=
+ROOTFS_FILE=${RELEASES}/rootfs.tar.gz
+
 clear
 cat << EOM
 
@@ -122,144 +132,6 @@ check_for_sdcards()
 	        done
         fi
 }
-
-populate_3_partitions() {
-    ENTERCORRECTLY="0"
-	while [ $ENTERCORRECTLY -ne 1 ]
-	do
-		read -e -p 'Enter path where SD card tarballs were downloaded : '  TARBALLPATH
-
-		echo ""
-		ENTERCORRECTLY=1
-		if [ -d $TARBALLPATH ]
-		then
-			echo "Directory exists"
-			echo ""
-			echo "This directory contains:"
-			ls $TARBALLPATH
-			echo ""
-			read -p 'Is this correct? [y/n] : ' ISRIGHTPATH
-				case $ISRIGHTPATH in
-				"y" | "Y") ;;
-				"n" | "N" ) ENTERCORRECTLY=0;continue;;
-				*)  echo "Please enter y or n";ENTERCORRECTLY=0;continue;;
-				esac
-		else
-			echo "Invalid path make sure to include complete path"
-			ENTERCORRECTLY=0
-            continue
-		fi
-        # Check that tarballs were found
-        if [ ! -e "$TARBALLPATH""/boot_partition.tar.gz" ]
-        then
-            echo "Could not find boot_partition.tar.gz as expected.  Please"
-            echo "point to the directory containing the boot_partition.tar.gz"
-            ENTERCORRECTLY=0
-            continue
-        fi
-
-        if [ ! -e "$TARBALLPATH""/rootfs_partition.tar.gz" ]
-        then
-            echo "Could not find rootfs_partition.tar.gz as expected.  Please"
-            echo "point to the directory containing the rootfs_partition.tar.gz"
-            ENTERCORRECTLY=0
-            continue
-        fi
-
-        if [ ! -e "$TARBALLPATH""/start_here_partition.tar.gz" ]
-        then
-            echo "Could not find start_here_partition.tar.gz as expected.  Please"
-            echo "point to the directory containing the start_here_partition.tar.gz"
-            ENTERCORRECTLY=0
-            continue
-        fi
-	done
-
-        # Make temporary directories and untar mount the partitions
-        mkdir $PWD/boot
-        mkdir $PWD/rootfs
-        mkdir $PWD/start_here
-        mkdir $PWD/tmp
-
-        mount -t vfat ${DRIVE}${P}1 boot
-        mount -t ext3 ${DRIVE}${P}2 rootfs
-        mount -t ext3 ${DRIVE}${P}3 start_here
-
-        # Remove any existing content in case the partitions were not
-        # recreated
-        sudo rm -rf boot/*
-        sudo rm -rf rootfs/*
-        sudo rm -rf start_here/*
-
-        # Extract the tarball contents.
-cat << EOM
-
-################################################################################
-        Extracting boot partition tarball
-
-################################################################################
-EOM
-        untar_progress $TARBALLPATH/boot_partition.tar.gz tmp/
-        if [ -e "./tmp/MLO" ]
-        then
-            cp ./tmp/MLO boot/
-        fi
-        cp -rf ./tmp/* boot/
-
-cat << EOM
-
-################################################################################
-        Extracting rootfs partition tarball
-
-################################################################################
-EOM
-        untar_progress $TARBALLPATH/rootfs_partition.tar.gz rootfs/
-
-cat << EOM
-
-################################################################################
-        Extracting start_here partition to temp directory
-
-################################################################################
-EOM
-        rm -rf tmp/*
-        untar_progress $TARBALLPATH/start_here_partition.tar.gz tmp/
-
-cat << EOM
-
-################################################################################
-        Extracting CCS tarball
-
-################################################################################
-EOM
-        mv tmp/CCS-5*.tar.gz .
-        untar_progress CCS-5*.tar.gz tmp/
-        rm CCS-5*.tar.gz
-
-cat << EOM
-
-################################################################################
-        Copying Contents to START_HERE
-
-################################################################################
-EOM
-
-        TOTALSIZE=`sudo du -c tmp/* | grep total | awk {'print $1'}`
-        cp -rf tmp/* start_here/ &
-        cp_progress $TOTALSIZE start_here/
-        sync;sync
-        # Fix up the START_HERE partitoin permissions
-        chown nobody -R start_here
-        chgrp nogroup -R start_here
-        chmod -R g+r+x,o+r+x start_here/CCS
-
-        umount boot rootfs start_here
-        sync;sync
-
-        # Clean up the temp directories
-        rm -rf boot rootfs start_here tmp
-}
-
 
 # find the avaible SD cards
 ROOTDRIVE=`mount | grep 'on / ' | awk {'print $1'} |  cut -c6-9`
@@ -452,111 +324,8 @@ EOM
 
 fi
 
-#Partition is not found, choose to partition 2 or 3 segments
 if [ "$PARTITION" -eq "0" ]
 then
-cat << EOM
-
-################################################################################
-
-	Select 2 partitions if only need boot and rootfs (most users)
-	Select 3 partitions if need SDK & CCS on SD card.  This is usually used
-        by device manufacturers with access to partition tarballs.
-
-	****WARNING**** continuing will erase all data on $DEVICEDRIVENAME
-
-################################################################################
-
-EOM
-	ENTERCORRECTLY=0
-	while [ $ENTERCORRECTLY -ne 1 ]
-	do
-
-		read -p 'Number of partitions needed [2/3] : ' CASEPARTITIONNUMBER
-		echo ""
-		echo " "
-		ENTERCORRECTLY=1
-		case $CASEPARTITIONNUMBER in
-		"2")  echo "Now partitioning $DEVICEDRIVENAME with 2 partitions...";PARTITION=2;;
-		"3")  echo "Now partitioning $DEVICEDRIVENAME with 3 partitions...";PARTITION=3;;
-		"n")  exit;;
-		*)  echo "Please enter 2 or 3";ENTERCORRECTLY=0;;
-		esac
-		echo " "
-	done
-fi
-
-
-
-#Section for partitioning the drive
-
-#create 3 partitions
-if [ "$PARTITION" -eq "3" ]
-then
-
-# set the PARTS value as well
-PARTS=3
-
-cat << EOM
-
-################################################################################
-
-		Now making 3 partitions
-
-################################################################################
-
-EOM
-
-dd if=/dev/zero of=$DRIVE bs=1024 count=1024
-
-SIZE=`fdisk -l $DRIVE | grep Disk | awk '{print $5}'`
-
-echo DISK SIZE - $SIZE bytes
-
-CYLINDERS=`echo $SIZE/255/63/512 | bc`
-
-sfdisk -D -H 255 -S 63 -C $CYLINDERS $DRIVE << EOF
-,9,0x0C,*
-10,300,,-
-310,,,-
-EOF
-
-cat << EOM
-
-################################################################################
-
-		Partitioning Boot
-
-################################################################################
-EOM
-	mkfs.vfat -F 32 -n "boot" ${DRIVE}${P}1
-cat << EOM
-
-################################################################################
-
-		Partitioning Rootfs
-
-################################################################################
-EOM
-	mkfs.ext3 -L "rootfs" ${DRIVE}${P}2
-cat << EOM
-
-################################################################################
-
-		Partitioning START_HERE
-
-################################################################################
-EOM
-	mkfs.ext3 -L "START_HERE" ${DRIVE}${P}3
-	sync
-	sync
-
-#create only 2 partitions
-elif [ "$PARTITION" -eq "2" ]
-then
-
-# Set the PARTS value as well
-PARTS=2
 cat << EOM
 
 ################################################################################
@@ -596,13 +365,12 @@ cat << EOM
 
 ################################################################################
 EOM
+
 	mkfs.ext3 -L "rootfs" ${DRIVE}${P}2
 	sync
 	sync
 	INSTALLSTARTHERE=n
 fi
-
-
 
 #Break between partitioning and installing file system
 cat << EOM
@@ -633,14 +401,6 @@ do
 	esac
 done
 
-# If this is a three partition card then we will jump to a function to
-# populate the three partitions and then exit the script.  If not we
-# go on to prompt the user for input on the two partitions
-if [ "$PARTS" -eq "3" ]
-then
-    populate_3_partitions
-    exit 0
-fi
 
 #Add directories for images
 export START_DIR=$PWD
@@ -673,337 +433,14 @@ sync
 sync
 sync
 
-cat << EOM
-################################################################################
-
-	Choose file path to install from
-
-	1 ) Install pre-built images from SDK
-	2 ) Enter in custom boot and rootfs file paths
-
-################################################################################
-
-EOM
-ENTERCORRECTLY=0
-while [ $ENTERCORRECTLY -ne 1 ]
-do
-	read -p 'Choose now [1/2] : ' FILEPATHOPTION
-	echo ""
-	echo " "
-	ENTERCORRECTLY=1
-	case $FILEPATHOPTION in
-	"1") echo "Will now install from SDK pre-built images";;
-	"2") echo "";;
-	*)  echo "Please enter 1 or 2";ENTERCORRECTLY=0;;
-	esac
-done
-
-# SDK DEFAULTS
-if [ $FILEPATHOPTION -eq 1 ] ; then
-
-	#check that in the right directory
-
-	THEEVMSDK=`echo $PARSEPATH | grep -o 'ti-processor-sdk-linux-am335x-evm-01.00.00.03'`
-
-	if [ $PATHVALID -eq 1 ]; then
-	echo "now installing:  $THEEVMSDK"
-	else
-	echo "no SDK PATH found"
-	ENTERCORRECTLY=0
-		while [ $ENTERCORRECTLY -ne 1 ]
-		do
-			read -e -p 'Enter path to SDK : '  SDKFILEPATH
-
-			echo ""
-			ENTERCORRECTLY=1
-			if [ -d $SDKFILEPATH ]
-			then
-				echo "Directory exists"
-				echo ""
-				PARSEPATH=`echo $SDKFILEPATH | grep -o '.*ti-processor-sdk-linux-am335x-evm-01.00.00.03/'`
-				#echo $PARSEPATH
-
-				if [ "$PARSEPATH" != "" ] ; then
-				PATHVALID=1
-				else
-				PATHVALID=0
-				fi
-				#echo $PATHVALID
-				if [ $PATHVALID -eq 1 ] ; then
-
-				THEEVMSDK=`echo $SDKFILEPATH | grep -o 'ti-processor-sdk-linux-am335x-evm-01.00.00.03'`
-				echo "Is this the correct SDK: $THEEVMSDK"
-				echo ""
-				read -p 'Is this correct? [y/n] : ' ISRIGHTPATH
-					case $ISRIGHTPATH in
-					"y") ;;
-					"n") ENTERCORRECTLY=0;;
-					*)  echo "Please enter y or n";ENTERCORRECTLY=0;;
-					esac
-				else
-				echo "Invalid SDK path make sure to include ti-sdk-xxxx"
-				ENTERCORRECTLY=0
-				fi
-
-			else
-				echo "Invalid path make sure to include complete path"
-
-				ENTERCORRECTLY=0
-			fi
-		done
-	fi
-
-
-
-	#check that files are in SDK
-	BOOTFILEPATH=releases/boot
-	MLO=`ls $BOOTFILEPATH | grep MLO | awk {'print $1'}`
-	KERNELIMAGE=`ls $BOOTFILEPATH | grep [uz]Image | awk {'print $1'}`
-	BOOTIMG=`ls $BOOTFILEPATH | grep u-boot | grep .img | awk {'print $1'}`
-	BOOTBIN=`ls $BOOTFILEPATH | grep u-boot | grep .bin | awk {'print $1'}`
-	BOOTUENV=`ls $BOOTFILEPATH | grep uEnv.txt | awk {'print $1'}`
-	#rootfs
-	ROOTFILEPARTH="$PARSEPATH/filesystem"
-	#ROOTFSTAR=`ls  $ROOTFILEPARTH | grep tisdk-rootfs | awk {'print $1'}`
-
-	#Make sure there is only 1 tar
-	CHECKNUMOFTAR=`ls $ROOTFILEPARTH | grep "tisdk-rootfs" | grep 'tar.gz' | grep -n '' | grep '2:' | awk {'print $1'}`
-	if [ -n "$CHECKNUMOFTAR" ]
-	then
-cat << EOM
-
-################################################################################
-
-   Multiple rootfs Tarballs found
-
-################################################################################
-
-EOM
-		ls $ROOTFILEPARTH | grep "tisdk-rootfs" | grep 'tar.gz' | grep -n '' | awk {'print "	" , $1'}
-		echo ""
-		read -p "Enter Number of rootfs Tarball: " TARNUMBER
-		echo " "
-		FOUNDTARFILENAME=`ls $ROOTFILEPARTH | grep "rootfs" | grep 'tar.gz' | grep -n '' | grep "${TARNUMBER}:" | cut -c3- | awk {'print$1'}`
-		ROOTFSTAR=$FOUNDTARFILENAME
-
-	else
-		ROOTFSTAR=`ls  $ROOTFILEPARTH | grep "tisdk-rootfs" | grep 'tar.gz' | awk {'print $1'}`
-	fi
-
-	ROOTFSUSERFILEPATH=$ROOTFILEPARTH/$ROOTFSTAR
-	BOOTPATHOPTION=1
-	ROOTFSPATHOPTION=2
-
-elif [ $FILEPATHOPTION -eq 2  ] ; then
-cat << EOM
-################################################################################
-
-  For U-boot and MLO
-
-  If files are located in Tarball write complete path including the file name.
-      e.x. $:  /home/user/MyCustomTars/boot.tar.gz
-
-  If files are located in a directory write the directory path
-      e.x. $: /ti-sdk/board-support/prebuilt-images/
-
-  NOTE: Not all platforms will have an MLO file and this file can
-        be ignored for platforms that do not support an MLO.
-
-  Update: The proper location for the kernel image and device tree
-          files have moved from the boot partition to the root filesystem.
-
-################################################################################
-
-EOM
-	ENTERCORRECTLY=0
-	while [ $ENTERCORRECTLY -ne 1 ]
-	do
-		read -e -p 'Enter path for Boot Partition : '  BOOTUSERFILEPATH
-
-		echo ""
-		ENTERCORRECTLY=1
-		if [ -f $BOOTUSERFILEPATH ]
-		then
-			echo "File exists"
-			echo ""
-		elif [ -d $BOOTUSERFILEPATH ]
-		then
-			echo "Directory exists"
-			echo ""
-			echo "This directory contains:"
-			ls $BOOTUSERFILEPATH
-			echo ""
-			read -p 'Is this correct? [y/n] : ' ISRIGHTPATH
-				case $ISRIGHTPATH in
-				"y") ;;
-				"n") ENTERCORRECTLY=0;;
-				*)  echo "Please enter y or n";ENTERCORRECTLY=0;;
-				esac
-		else
-			echo "Invalid path make sure to include complete path"
-
-			ENTERCORRECTLY=0
-		fi
-	done
-
-
-cat << EOM
-
-
-################################################################################
-
-   For Kernel Image and Device Trees files
-
-    What would you like to do?
-     1) Reuse kernel image and device tree files found in the selected rootfs.
-     2) Provide a directory that contains the kernel image and device tree files
-        to be used.
-
-################################################################################
-
-EOM
-
-ENTERCORRECTLY=0
-while [ $ENTERCORRECTLY -ne 1 ]
-do
-
-	read -p 'Choose option 1 or 2 : ' CASEOPTION
-	echo ""
-	echo " "
-	ENTERCORRECTLY=1
-	case $CASEOPTION in
-		"1")  echo "Reusing kernel and dt files from the rootfs's boot directory";KERNELFILESOPTION=1;;
-		"2")  echo "Choosing a directory that contains the kernel files to be used";KERNELFILESOPTION=2;;
-		"n")  exit;;
-		*)  echo "Please enter 1 or 2";ENTERCORRECTLY=0;;
-	esac
-	echo " "
-done
-
-if [ $KERNELFILESOPTION == 2 ]
+#Check if user entered a tar or not for Rootfs
+ISROOTFSTAR=`ls $ROOTFS_FILE | grep .tar.gz | awk {'print $1'}`
+if [ -n "$ISROOTFSTAR" ]
 then
-
-cat << EOM
-################################################################################
-
-  For Kernel Image and Device Trees files
-
-  The kernel image name should contain the image type uImage or zImage depending
-  on which format is used.
-
-  The device tree files must end with .dtb
-      e.g    am335x-evm.dtb am43x-gp-evm.dtb
-
-
-################################################################################
-
-EOM
-	ENTERCORRECTLY=0
-	while [ $ENTERCORRECTLY -ne 1 ]
-	do
-		read -e -p 'Enter path for kernel image and device tree files : '  KERNELUSERFILEPATH
-
-		echo ""
-		ENTERCORRECTLY=1
-
-		if [ -d $KERNELUSERFILEPATH ]
-		then
-			echo "Directory exists"
-			echo ""
-			echo "This directory contains:"
-			ls $KERNELUSERFILEPATH
-			echo ""
-			read -p 'Is this correct? [y/n] : ' ISRIGHTPATH
-			case $ISRIGHTPATH in
-				"y") ;;
-				"n") ENTERCORRECTLY=0;;
-				*)  echo "Please enter y or n";ENTERCORRECTLY=0;;
-				esac
-		else
-			echo "Invalid path make sure to include complete path"
-			ENTERCORRECTLY=0
-		fi
-	done
-fi
-
-cat << EOM
-
-
-################################################################################
-
-   For Rootfs partition
-
-   If files are located in Tarball write complete path including the file name.
-      e.x. $:  /home/user/MyCustomTars/rootfs.tar.gz
-
-  If files are located in a directory write the directory path
-      e.x. $: /ti-sdk/targetNFS/
-
-################################################################################
-
-EOM
-	ENTERCORRECTLY=0
-	while [ $ENTERCORRECTLY -ne 1 ]
-	do
-		read -e -p 'Enter path for Rootfs Partition : ' ROOTFSUSERFILEPATH
-		echo ""
-		ENTERCORRECTLY=1
-		if [ -f $ROOTFSUSERFILEPATH ]
-		then
-			echo "File exists"
-			echo ""
-		elif [ -d $ROOTFSUSERFILEPATH ]
-		then
-			echo "This directory contains:"
-			ls $ROOTFSUSERFILEPATH
-			echo ""
-			read -p 'Is this correct? [y/n] : ' ISRIGHTPATH
-				case $ISRIGHTPATH in
-				"y") ;;
-				"n") ENTERCORRECTLY=0;;
-				*)  echo "Please enter y or n";ENTERCORRECTLY=0;;
-				esac
-
-		else
-			echo "Invalid path make sure to include complete path"
-
-			ENTERCORRECTLY=0
-		fi
-	done
-	echo ""
-
-
-	# Check if user entered a tar or not for Boot
-	ISBOOTTAR=`ls $BOOTUSERFILEPATH | grep .tar.gz | awk {'print $1'}`
-	if [ -n "$ISBOOTTAR" ]
-	then
-		BOOTPATHOPTION=2
-	else
-		BOOTPATHOPTION=1
-		BOOTFILEPATH=$BOOTUSERFILEPATH
-		MLO=`ls $BOOTFILEPATH | grep MLO | awk {'print $1'}`
-		BOOTIMG=`ls $BOOTFILEPATH | grep u-boot | grep .img | awk {'print $1'}`
-		BOOTBIN=`ls $BOOTFILEPATH | grep u-boot | grep .bin | awk {'print $1'}`
-		BOOTUENV=`ls $BOOTFILEPATH | grep uEnv.txt | awk {'print $1'}`
-	fi
-
-
-	if [ "$KERNELFILESOPTION" == "2" ]
-	then
-		KERNELIMAGE=`ls $KERNELUSERFILEPATH | grep [uz]Image | awk {'print $1'}`
-		DTFILES=`ls $KERNELUSERFILEPATH | grep .dtb$ | awk {'print $1'}`
-	fi
-
-
-	#Check if user entered a tar or not for Rootfs
-	ISROOTFSTAR=`ls $ROOTFSUSERFILEPATH | grep .tar.gz | awk {'print $1'}`
-	if [ -n "$ISROOTFSTAR" ]
-	then
-		ROOTFSPATHOPTION=2
-	else
-		ROOTFSPATHOPTION=1
-		ROOTFSFILEPATH=$ROOTFSUSERFILEPATH
-	fi
+	ROOTFSPATHOPTION=2
+else
+	ROOTFSPATHOPTION=1
+	ROOTFSFILEPATH=$ROOTFS_FILEPATH
 fi
 
 cat << EOM
@@ -1016,13 +453,10 @@ cat << EOM
 Copying boot partition
 EOM
 
-
-if [ $BOOTPATHOPTION -eq 1 ] ; then
-
 	echo ""
 	#copy boot files out of board support
 	if [ "$MLO" != "" ] ; then
-		cp $BOOTFILEPATH/$MLO $PATH_TO_SDBOOT/MLO
+		cp $MLO_FILE $PATH_TO_SDBOOT/MLO
 		echo "MLO copied"
 	else
 		echo "MLO file not found"
@@ -1032,11 +466,11 @@ if [ $BOOTPATHOPTION -eq 1 ] ; then
 
 	echo ""
 
-	if [ "$BOOTIMG" != "" ] ; then
-		cp $BOOTFILEPATH/$BOOTIMG $PATH_TO_SDBOOT/u-boot.img
+	if [ "$UBOOT_IMAGE_FILE" != "" ] ; then
+		cp $UBOOT_IMAGE_FILE $PATH_TO_SDBOOT/u-boot.img
 		echo "u-boot.img copied"
-	elif [ "$BOOTBIN" != "" ] ; then
-		cp $BOOTFILEPATH/$BOOTBIN $PATH_TO_SDBOOT/u-boot.bin
+	elif [ "$UBOOT_BINARY_FILE" != "" ] ; then
+		cp $UBOOT_BINARY_FILE $PATH_TO_SDBOOT/u-boot.bin
 		echo "u-boot.bin copied"
 	else
 		echo "No U-Boot file found"
@@ -1044,28 +478,21 @@ if [ $BOOTPATHOPTION -eq 1 ] ; then
 
 	echo ""
 
-	if [ "$BOOTUENV" != "" ] ; then
-		cp $BOOTFILEPATH/$BOOTUENV $PATH_TO_SDBOOT/uEnv.txt
+	if [ "$UENV_FILE" != "" ] ; then
+		cp $UENV_FILE $PATH_TO_SDBOOT/uEnv.txt
 		echo "uEnv.txt copied"
 	fi
-
-elif [ $BOOTPATHOPTION -eq 2  ] ; then
-	untar_progress $BOOTUSERFILEPATH $PATH_TO_TMP_DIR
-	cp -rf $PATH_TO_TMP_DIR/* $PATH_TO_SDBOOT
-	echo ""
-
-fi
 
 echo ""
 sync
 
 echo "Copying rootfs System partition"
 if [ $ROOTFSPATHOPTION -eq 1 ] ; then
-	TOTALSIZE=`sudo du -c $ROOTFSUSERFILEPATH/* | grep total | awk {'print $1'}`
-	sudo cp -r $ROOTFSUSERFILEPATH/* $PATH_TO_SDROOTFS & cp_progress $TOTALSIZE $PATH_TO_SDROOTFS
+	TOTALSIZE=`sudo du -c $ROOTFS_FILE/* | grep total | awk {'print $1'}`
+	sudo cp -r $ROOTFS_FILE/* $PATH_TO_SDROOTFS & cp_progress $TOTALSIZE $PATH_TO_SDROOTFS
 
 elif [ $ROOTFSPATHOPTION -eq 2  ] ; then
-	untar_progress $ROOTFSUSERFILEPATH $PATH_TO_SDROOTFS
+	untar_progress $ROOTFS_FILE $PATH_TO_SDROOTFS
 fi
 
 echo ""
@@ -1080,35 +507,29 @@ sync
 sync
 sync
 
-if [ "$KERNELFILESOPTION" == "2" ]
+mkdir -p $PATH_TO_SDROOTFS/boot
+
+if [ "$KERNELIMAGE" != "" ] ; then
+	cp -f $KERNELIMAGE $PATH_TO_SDROOTFS/boot/uImage
+	echo "Kernel image copied"
+else
+	echo "$KERNELIMAGE file not found"
+fi
+
+COPYINGDTB="false"
+for dtb in $DTFILES
+do
+	echo "$DEVICE_TREE_BINARY"
+	if [ -f "$DEVICE_TREE_BINARY" ] ; then
+		cp -f $DEVICE_TREE_BINARY $PATH_TO_SDROOTFS/boot
+		echo "$dtb copied"
+		COPYINGDTB="true"
+	fi
+done
+
+if [ "$COPYINGDTB" == "false" ]
 then
-
-	mkdir -p $PATH_TO_SDROOTFS/boot
-
-	if [ "$KERNELIMAGE" != "" ] ; then
-
-		CLEANKERNELNAME=`ls "$BOOTFILEPATH/$KERNELIMAGE" | grep -o [uz]Image`
-		cp -f $KERNELUSERFILEPATH/$KERNELIMAGE $PATH_TO_SDROOTFS/boot/$CLEANKERNELNAME
-		echo "Kernel image copied"
-	else
-		echo "$KERNELIMAGE file not found"
-	fi
-
-	COPYINGDTB="false"
-	for dtb in $DTFILES
-	do
-		if [ -f "$KERNELUSERFILEPATH/$dtb" ] ; then
-			cp -f $KERNELUSERFILEPATH/$dtb $PATH_TO_SDROOTFS/boot
-			echo "$dtb copied"
-			COPYINGDTB="true"
-		fi
-	done
-
-	if [ "$COPYINGDTB" == "false" ]
-	then
-		echo "No device tree files found"
-	fi
-
+	echo "No device tree files found"
 fi
 
 echo " "
@@ -1116,13 +537,11 @@ echo "Un-mount the partitions "
 sudo umount -f $PATH_TO_SDBOOT
 sudo umount -f $PATH_TO_SDROOTFS
 
-
 echo " "
 echo "Remove created temp directories "
 sudo rm -rf $PATH_TO_TMP_DIR
 sudo rm -rf $PATH_TO_SDROOTFS
 sudo rm -rf $PATH_TO_SDBOOT
-
 
 echo " "
 echo "Operation Finished"
