@@ -47,13 +47,15 @@ EXE=`echo $0 | sed s=$PWD==`
 EXEPATH="$PWD"/"$EXE"
 
 #load file locations
-RELEASES=`pwd`/releases
+TOPDIR=`pwd`
+RELEASES=${TOPDIR}/releases
+BUILD_DIR=${TODIR}/image_build
 BOOT_DIR=${RELEASES}/boot
 UBOOT_IMAGE_FILE=${BOOT_DIR}/uboot
 UBOOT_BINARY_FILE=${BOOT_DIR}/uboot-spl.bin
-UENV_FILE=
-MLO_FILE=
-ROOTFS_FILE=${RELEASES}/rootfs.tar.gz
+UENV_FILE=${RELEASES}/uEnv.txt
+MLO_FILE=${RELEASES}/mlo
+ROOTFS_FILE=${BUILD_DIR}/bin/rootfs.img
 
 clear
 cat << EOM

@@ -19,6 +19,10 @@ if [ ! -d "${BUILD_DIR}" ]; then
 	mkdir ${BUILD_DIR}
 fi
 
+if [ ! -d "${BUILD_DIR}/bin" ]; then
+	mkdir ${BUILD_DIR}/bin
+fi
+
 #build root filesystem
 rm -rf ${ROOTFS_DIR}
 mkdir ${ROOTFS_DIR} ${ROOTFS_DIR}/proc ${ROOTFS_DIR}/usr ${ROOTFS_DIR}/sys \
@@ -36,7 +40,8 @@ cd ${TOP_DIR}
 #copy product specific scripts and files
 cp -a ${PROD_DIR}/. ${ROOTFS_DIR}
 
-
-#find . | cpio -o --format=newc > ${ROOTFS_IMG}
+rm -f ${ROOTFS_IMG}
+cd ${ROOTFS_DIR}
+find . | cpio -o --format=newc > ${ROOTFS_IMG}
 
 
