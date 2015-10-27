@@ -1,0 +1,16 @@
+Package: libtag-dev
+Version: 1.8-r1
+Description: Library for reading and editing the meta-data of popular audio formats - Development files
+ Library for reading and editing the meta-data of popular audio formats.
+ This package contains symbolic links, header files, and related items
+ necessary for software development.
+Section: devel
+Priority: optional
+Maintainer: OE-Core Developers <openembedded-core@lists.openembedded.org>
+License: LGPLv2.1 | MPL-1
+Architecture: cortexa8t2hf-vfp-neon
+OE: taglib
+Homepage: http://developer.kde.org/~wheeler/taglib.html
+Depends: libtag-c0, libtag1 (= 1.8-r1)
+Recommends: libc6-dev, taglib-c-dev, libgcc-s-dev, libstdc++-dev, libz-dev
+Source: https://github.com/downloads/taglib/taglib/taglib-1.8.tar.gz

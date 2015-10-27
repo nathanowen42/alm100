@@ -3,14 +3,24 @@ TOPDIR=`pwd`
 QT_DIR=${TOPDIR}/qt5
 CONFIG_FILE=${TOPDIR}/configs/qmake.conf
 INSTALL_PATH=${TOPDIR}/build
+PATCH_DIR=${TOPDIR}/patches
 
-#cp -v ${CONFIG_FILE} ${QT_DIR}/mkspecs/qws/linux-arm-g++/qmake.conf
+source ${TOPDIR}/../../build_tools/build_paths.sh
+
+
+cp * ${PATCH_DIR} ${QT_DIR}
+cp -a ${PATCH_DIR}/linux-arm-gnueabi-ti-g++ ${QT_DIR}/qtbase/mkspecs/
+
+
+export QMAKESPEC=
+
+export PATH=${TOOLCHAIN}/bin:${INSTALL_PATH}/qtbase/bin:$PATH
 
 cd ${QT_DIR}
+./configure -prefix ${INSTALL_PATH} -release -make libs -xplatform linux-arm-gnueabi-ti-g++ -opengl es2 -confirm-license -opensource -icu -no-xcb -no-pch -make examples -verbose
 
-./configure -opensource -little-endian -prefix ${INSTALL_PATH} -embedded arm -platform qws/linux-x86-g++ -xplatform qws/linux-arm-g++ -depths 16,24,32 -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups -no-largefile -no-accessibility -no-openssl -no-gtkstyle -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput -plugin-mouse-linuxtp -plugin-mouse-pc -fast 
 
 #printf "make clean"
-#make clean -j12 1>/dev/null
+make clean -j12 1>/dev/null
 make -j6
 #make install
