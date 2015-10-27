@@ -11,6 +11,11 @@ CONFIG_FILE=${TOPDIR}/configs/linux_config
 CC=arm-linux-gnueabihf-
 LOADADDR=0x80008000
 
+
+source ${TOPDIR}/../../build_tools/build_paths.sh
+
+export PATH=${TOOLCHAIN}/bin:${PATH}
+
 #max number of threads to use (setting too high overloads and crashes)
 CORES=10
 

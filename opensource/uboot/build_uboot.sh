@@ -6,6 +6,10 @@
 TOPDIR=$(pwd)
 UBOOT_DIR=ti-u-boot
 
+source ${TOPDIR}/../../build_tools/build_paths.sh
+
+export PATH=${TOOLCHAIN}/bin:${PATH}
+
 update_repo () {
 	cd ${TOPDIR}/${UBOOT_DIR}
 	echo "Checking for repo updates"
