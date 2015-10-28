@@ -1,0 +1,14 @@
+prefix=/usr/local/Qt-5.6.0
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 EglDeviceIntegration
+Description: Qt EglDeviceIntegration module
+Version: 5.6.0
+Libs: -L${libdir} -lQt5EglDeviceIntegration 
+Libs.private: -ldl -L/usr/local/Qt-5.6.0/lib -lQt5PlatformSupport -lfontconfig -lfreetype -lQt5DBus -lgthread-2.0 -pthread -lglib-2.0 -lXrender -lXext -lX11 -lm -linput -lxkbcommon -ludev -lmtdev -lEGL -lGL -lQt5Gui -lQt5Core -lpthread -lEGL -lGL  
+Cflags: -I${includedir}/QtEglDeviceIntegration -I${includedir}
+Requires: Qt5Core Qt5Gui
+

@@ -1,0 +1,10 @@
+bootdir=
+bootfile=uImage
+fdtfile=am335x-boneblack.dtb
+loadaddr=0x80007fc0
+fdtaddr=0x80F80000
+loadfdt=fatload mmc 0:1 ${fdtaddr} ${fdtfile}
+loaduimage=fatload mmc 0:1 ${loadaddr} ${bootfile}
+uenvcmd=mmc rescan; run loaduimage; run loadfdt; run fdtboot
+fdtboot=run mmc_args; run mmcargs; bootz ${loadaddr} - ${fdtaddr}
+mmc_args=setenv bootargs console=${console} ${optargs} root=${mmcroot} rootfstype=${mmcrootfstype}

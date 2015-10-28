@@ -53,8 +53,8 @@ BUILD_DIR=${TODIR}/image_build
 BOOT_DIR=${RELEASES}/boot
 UBOOT_IMAGE_FILE=${BOOT_DIR}/uboot
 UBOOT_BINARY_FILE=${BOOT_DIR}/uboot-spl.bin
-UENV_FILE=${RELEASES}/uEnv.txt
-MLO_FILE=${RELEASES}/mlo
+UENV_FILE=${BOOT_DIR}/uEnv.txt
+MLO_FILE=${BOOT_DIR}/MLO
 ROOTFS_FILE=${BUILD_DIR}/bin/rootfs.img
 
 clear
