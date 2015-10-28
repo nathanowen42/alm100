@@ -8,6 +8,8 @@ APP_DIR=${TOP_DIR}/alm_app
 RELEASE_DIR=${TOP_DIR}/releases
 ROOTFS_DIR=${BUILD_DIR}/rootfs
 PROD_DIR=${TOP_DIR}/alm100
+QT_REL_DIR=${RELEASE_DIR}/qt
+QT_INSTALL_DIR=${ROOTFS_DIR}/opt/qt
 
 #release images
 BUSYBOX_IMAGE=${RELEASE_DIR}/busybox.tar.gz
@@ -25,7 +27,7 @@ fi
 
 #build root filesystem
 rm -rf ${ROOTFS_DIR}
-mkdir ${ROOTFS_DIR} ${ROOTFS_DIR}/proc ${ROOTFS_DIR}/usr ${ROOTFS_DIR}/sys \
+mkdir ${ROOTFS_DIR} ${ROOTFS_DIR}/proc ${ROOTFS_DIR}/usr ${ROOTFS_DIR}/opt ${ROOTFS_DIR}/sys \
       ${ROOTFS_DIR}/dev ${ROOTFS_DIR}/etc ${ROOTFS_DIR}/etc/init.d ${ROOTFS_DIR}/usr/lib
 mknod ${ROOTFS_DIR}/dev/ttyAM0 c 204 16
 mknod ${ROOTFS_DIR}/dev/rtc0 c 254 0
@@ -39,6 +41,12 @@ tar xfz ${RELEASE_DIR}/root/busybox.tar.gz
 cd ${TOP_DIR}
 #copy product specific scripts and files
 cp -a ${PROD_DIR}/. ${ROOTFS_DIR}
+
+#Copy QT resources
+mkdir ${QT_INSTALL_DIR} ${QT_INSTALL_DIR}/bin ${QT_INSTALL_DIR}/lib ${QT_INSTALL_DIR}/plugins
+cp -a ${QT_REL_DIR}/lib/. ${QT_INSTALL_DIR}/lib/
+cp -a ${QT_REL_DIR}/bin/. ${QT_INSTALL_DIR}/bin/
+cp -a ${QT_REL_DIR}/plugins/. ${QT_INSTALL_DIR}/plugins/
 
 rm -f ${ROOTFS_IMG}
 cd ${ROOTFS_DIR}
