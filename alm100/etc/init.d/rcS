@@ -1,2 +1,3 @@
 #!/bin/sh
 echo "Starting Application"
+/opt/alm_app &

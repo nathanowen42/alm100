@@ -4,8 +4,8 @@
 #files
 TOP_DIR=`pwd`
 BUILD_DIR=${TOP_DIR}/image_build
-APP_DIR=${TOP_DIR}/alm_app
 RELEASE_DIR=${TOP_DIR}/releases
+APP_DIR=${RELEASE_DIR}/app
 ROOTFS_DIR=${BUILD_DIR}/rootfs
 PROD_DIR=${TOP_DIR}/alm100
 QT_REL_DIR=${RELEASE_DIR}/qt
@@ -47,6 +47,9 @@ mkdir ${QT_INSTALL_DIR} ${QT_INSTALL_DIR}/bin ${QT_INSTALL_DIR}/lib ${QT_INSTALL
 cp -a ${QT_REL_DIR}/lib/. ${QT_INSTALL_DIR}/lib/
 cp -a ${QT_REL_DIR}/bin/. ${QT_INSTALL_DIR}/bin/
 cp -a ${QT_REL_DIR}/plugins/. ${QT_INSTALL_DIR}/plugins/
+
+#copy app files
+cp -a ${APP_DIR}/. ${ROOTFS_DIR}
 
 rm -f ${ROOTFS_IMG}
 cd ${ROOTFS_DIR}
