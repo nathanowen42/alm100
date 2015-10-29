@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-10-28T20:49:54
+# Project created by QtCreator 2015-10-29T10:47:04
 #
 #-------------------------------------------------
 
@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = src
+TARGET = alm_app
 TEMPLATE = app
 
 
