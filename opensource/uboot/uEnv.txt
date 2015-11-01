@@ -9,11 +9,10 @@ loadzimage=load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${kernel_file}
 loadfdt=load mmc ${mmcdev}:${mmcpart} ${fdtaddr} ${fdtfile}
 
 console=ttyO0,115200n8
-mmcroot=/dev/mmcblk0p2 rw
-mmcrootfstype=ext4 rootwait
+mmcroot=/dev/mmcblk0p2 ro
+mmcrootfstype=ext3 rootwait
 
-mmcargs=setenv bootargs console=${console} mmcroot=${mmcroot} rootfstype=${mmcrootfstype} ${optargs}
+mmcargs=setenv bootargs console=${console} root=${mmcroot} rootfstype=${mmcrootfstype} ${optargs}
 
 uenvcmd=run loadzimage; run loadfdt; run mmcargs; bootz ${loadaddr} - ${fdtaddr}
 
-optargs="debug init=/etc/preinit"
