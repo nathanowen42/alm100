@@ -49,13 +49,15 @@ EXEPATH="$PWD"/"$EXE"
 #load file locations
 TOPDIR=`pwd`
 RELEASES=${TOPDIR}/releases
-BUILD_DIR=${TODIR}/image_build
+BUILD_DIR=${TOPDIR}/image_build
 BOOT_DIR=${RELEASES}/boot
-UBOOT_IMAGE_FILE=${BOOT_DIR}/uboot
+UBOOT_IMAGE_FILE=${BOOT_DIR}/u-boot.img
 UBOOT_BINARY_FILE=${BOOT_DIR}/uboot-spl.bin
 UENV_FILE=${BOOT_DIR}/uEnv.txt
 MLO_FILE=${BOOT_DIR}/MLO
-ROOTFS_FILE=${BUILD_DIR}/bin/rootfs.img
+ROOTFS_FILE=${BUILD_DIR}/rootfs
+DEVICE_TREE_BINARY=${RELEASES}/dtb/am335x-boneblack.dtb
+KERNELIMAGE=${RELEASES}/kernel/4.1.10-.zImage
 
 clear
 cat << EOM
@@ -83,15 +85,6 @@ if [ "$AMIROOT" != "root" ] ; then
 	echo "	**** Error *** must run script with sudo"
 	echo ""
 	exit
-fi
-
-THEPWD=$EXEPATH
-PARSEPATH=`echo $THEPWD | grep -o '.*ti-processor-sdk-linux-am335x-evm-01.00.00.03/'`
-
-if [ "$PARSEPATH" != "" ] ; then
-PATHVALID=1
-else
-PATHVALID=0
 fi
 
 #Precentage function
@@ -457,7 +450,7 @@ EOM
 
 	echo ""
 	#copy boot files out of board support
-	if [ "$MLO" != "" ] ; then
+	if [ "$MLO_FILE" != "" ] ; then
 		cp $MLO_FILE $PATH_TO_SDBOOT/MLO
 		echo "MLO copied"
 	else
@@ -483,6 +476,26 @@ EOM
 	if [ "$UENV_FILE" != "" ] ; then
 		cp $UENV_FILE $PATH_TO_SDBOOT/uEnv.txt
 		echo "uEnv.txt copied"
+	fi
+
+	if [ "$KERNELIMAGE" != "" ] ; then
+		cp -f $KERNELIMAGE $PATH_TO_SDBOOT/zImage
+		echo "Kernel image copied"
+	else
+		echo "$KERNELIMAGE file not found"
+	fi
+
+	COPYINGDTB="false"
+	echo "$DEVICE_TREE_BINARY"
+	if [ -f "$DEVICE_TREE_BINARY" ] ; then
+		cp -f $DEVICE_TREE_BINARY $PATH_TO_SDBOOT/
+		echo "$dtb copied"
+		COPYINGDTB="true"
+	fi
+
+	if [ "$COPYINGDTB" == "false" ]
+	then
+		echo "No device tree files found"
 	fi
 
 echo ""
@@ -512,26 +525,46 @@ sync
 mkdir -p $PATH_TO_SDROOTFS/boot
 
 if [ "$KERNELIMAGE" != "" ] ; then
-	cp -f $KERNELIMAGE $PATH_TO_SDROOTFS/boot/uImage
+	cp -f $KERNELIMAGE $PATH_TO_SDROOTFS/boot/zImage
 	echo "Kernel image copied"
 else
 	echo "$KERNELIMAGE file not found"
 fi
 
-COPYINGDTB="false"
-for dtb in $DTFILES
-do
-	echo "$DEVICE_TREE_BINARY"
-	if [ -f "$DEVICE_TREE_BINARY" ] ; then
-		cp -f $DEVICE_TREE_BINARY $PATH_TO_SDROOTFS/boot
-		echo "$dtb copied"
-		COPYINGDTB="true"
-	fi
-done
+if [ -f "$DEVICE_TREE_BINARY" ] ; then
+	cp -f $DEVICE_TREE_BINARY $PATH_TO_SDROOTFS/boot/
+	echo "$DEVICE_TREE_BINARY copied"
+else
+	echo "$DEVICE_TREE_BINARY file not found"
+fi
 
-if [ "$COPYINGDTB" == "false" ]
-then
-	echo "No device tree files found"
+#copy boot files out of board support
+if [ "$MLO_FILE" != "" ] ; then
+	cp $MLO_FILE $PATH_TO_SDROOTFS/boot/MLO
+	echo "MLO copied"
+else
+	echo "MLO file not found"
+fi
+
+echo ""
+
+echo ""
+
+if [ "$UBOOT_IMAGE_FILE" != "" ] ; then
+	cp $UBOOT_IMAGE_FILE $PATH_TO_SDROOTFS/boot/u-boot.img
+	echo "u-boot.img copied"
+elif [ "$UBOOT_BINARY_FILE" != "" ] ; then
+	cp $UBOOT_BINARY_FILE $PATH_TO_SDROOTFS/boot/u-boot.bin
+	echo "u-boot.bin copied"
+else
+	echo "No U-Boot file found"
+fi
+
+echo ""
+
+if [ "$UENV_FILE" != "" ] ; then
+	cp $UENV_FILE $PATH_TO_SDROOTFS/boot/uEnv.txt
+	echo "uEnv.txt copied"
 fi
 
 echo " "

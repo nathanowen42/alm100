@@ -4,17 +4,17 @@
 #With some code adopted from Robert Nelson's stable-kernel build script  - https://github.com/RobertCNelson/stable-kernel
 
 TOPDIR=$(pwd)
+
+source ${TOPDIR}/../../build_tools/build_paths.sh
+export PATH=${TOOLCHAIN}/bin:${PATH}
+
 KERNEL_DIR=${TOPDIR}/ti-linux-kernel
 KERNEL_CONFIG=omap2plus_defconfig
 RELEASE_DIR=${TOPDIR}/../../releases/
 CONFIG_FILE=${TOPDIR}/configs/linux_config
 CC=arm-linux-gnueabihf-
-LOADADDR=0x80008000
+LOADADDR=0x82000000
 
-
-source ${TOPDIR}/../../build_tools/build_paths.sh
-
-export PATH=${TOOLCHAIN}/bin:${PATH}
 
 #max number of threads to use (setting too high overloads and crashes)
 CORES=10
@@ -57,11 +57,13 @@ make_menuconfig () {
 }
 
 make_kernel () {
-	image="uImage"
+	#image="uImage"
+	image="zImage"
 	address="LOADADDR=$LOADADDR"
 
 	cd ${KERNEL_DIR}
-	make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" ${address} ${image} modules
+	#make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" ${address} ${image} modules
+	make -j${CORES} ARCH=arm LOCALVERSION=-${BUILD} CROSS_COMPILE="${CC}" ${image} modules
 
 	unset DTBS
 	cat ${KERNEL_DIR}/arch/arm/Makefile | grep "dtbs:" >/dev/null 2>&1 && DTBS=enable
