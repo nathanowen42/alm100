@@ -28,7 +28,8 @@ fi
 #build root filesystem
 rm -rf ${ROOTFS_DIR}
 mkdir ${ROOTFS_DIR} ${ROOTFS_DIR}/proc ${ROOTFS_DIR}/usr ${ROOTFS_DIR}/opt ${ROOTFS_DIR}/sys \
-      ${ROOTFS_DIR}/dev ${ROOTFS_DIR}/etc ${ROOTFS_DIR}/etc/init.d ${ROOTFS_DIR}/usr/lib
+      ${ROOTFS_DIR}/dev ${ROOTFS_DIR}/etc ${ROOTFS_DIR}/home ${ROOTFS_DIR}/etc/init.d \
+      ${ROOTFS_DIR}/usr/lib ${ROOTFS_DIR}/home/root
 mknod ${ROOTFS_DIR}/dev/ttyAM0 c 204 16
 mknod ${ROOTFS_DIR}/dev/rtc0 c 254 0
 ln -s rtc0 ${ROOTFS_DIR}/dev/rtc

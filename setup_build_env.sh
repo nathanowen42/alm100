@@ -27,3 +27,6 @@ sudo apt-get -y install build-essential perl python git
 sudo apt-get -y install "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev
 sudo apt-get -y install libcap-dev libbz2-dev libgcrypt11-dev libpci-dev libnss3-dev build-essential libxcursor-dev libxcomposite-dev libxdamage-dev libxrandr-dev libdrm-dev libfontconfig1-dev libxtst-dev libasound2-dev gperf libcups2-dev libpulse-dev libudev-dev libssl-dev flex bison ruby
 
+#for tslib
+sudo apt-get install autoconf
+sudo apt-get install libtool

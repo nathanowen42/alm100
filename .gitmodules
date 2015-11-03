@@ -10,3 +10,6 @@
 [submodule "opensource/qt/qt5"]
 	path = opensource/qt/qt5
 	url = git://code.qt.io/qt/qt5.git
+[submodule "opensource/tslib/tslib"]
+	path = opensource/tslib/tslib
+	url = https://github.com/kergoth/tslib.git
