@@ -4,7 +4,7 @@
 
 TOPDIR=`pwd`
 
-r -f /usr/local/alm_ref
+rm -f /usr/local/alm_ref
 ln -s ${TOPDIR} /usr/local/alm_ref
 
 sudo apt-get update
