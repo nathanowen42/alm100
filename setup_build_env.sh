@@ -2,6 +2,11 @@
 #Written by Nathan Owen - nathanowen42@gmail.com
 #Adds required packages, compatable with Ubuntu 15.04
 
+TOPDIR=`pwd`
+
+r -f /usr/local/alm_ref
+ln -s ${TOPDIR} /usr/local/alm_ref
+
 sudo apt-get update
 
 #get cross compiler
