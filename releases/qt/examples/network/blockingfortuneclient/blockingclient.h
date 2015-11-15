@@ -73,9 +73,14 @@ private:
     QLineEdit *hostLineEdit;
     QLineEdit *portLineEdit;
     QLabel *statusLabel;
+#ifdef Q_OS_SYMBIAN
+    QAction *fortuneAction;
+    QAction *exitAction;
+#else
     QPushButton *getFortuneButton;
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;
+#endif
 
     FortuneThread thread;
     QString currentFortune;

@@ -53,7 +53,7 @@ public:
     FortuneServer(QObject *parent = 0);
 
 protected:
-    void incomingConnection(qintptr socketDescriptor) Q_DECL_OVERRIDE;
+    void incomingConnection(int socketDescriptor);
 
 private:
     QStringList fortunes;

@@ -41,7 +41,7 @@
 #ifndef INFORMATIONWINDOW_H
 #define INFORMATIONWINDOW_H
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtSql>
 
 //! [0]
@@ -50,7 +50,7 @@ class InformationWindow : public QDialog
     Q_OBJECT
 
 public:
-    InformationWindow(int id, QSqlRelationalTableModel *items,
+    InformationWindow(int id, QSqlRelationalTableModel *offices,
                       QWidget *parent = 0);
 
     int id();
@@ -70,11 +70,12 @@ private slots:
 private:
     void createButtons();
 
-    int itemId;
+    int locationId;
     QString displayedImage;
 
     QComboBox *imageFileEditor;
-    QLabel *itemText;
+    QLabel *locationText;
+    QLabel *countryText;
     QTextEdit *descriptionEditor;
 
     QPushButton *closeButton;

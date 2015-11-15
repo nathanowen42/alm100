@@ -63,11 +63,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
 
-    QSize sizeHint() const Q_DECL_OVERRIDE;
+    QSize sizeHint() const;
     const TorrentClient *clientForRow(int row) const;
-
+    
 protected:
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     void loadSettings();
@@ -94,12 +94,12 @@ private slots:
     void about();
     void setActionsEnabled();
     void acceptFileDrop(const QString &fileName);
-
+    
 private:
     int rowOfClient(TorrentClient *client) const;
     bool addTorrent(const QString &fileName, const QString &destinationFolder,
                     const QByteArray &resumeState = QByteArray());
-
+    
     TorrentView *torrentView;
     QAction *pauseTorrentAction;
     QAction *removeTorrentAction;

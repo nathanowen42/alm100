@@ -41,7 +41,7 @@
 #ifndef GOOGLESUGGEST_H
 #define GOOGLESUGGEST_H
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 #include <QObject>
 
@@ -60,8 +60,8 @@ class GSuggestCompletion : public QObject
 public:
     GSuggestCompletion(QLineEdit *parent = 0);
     ~GSuggestCompletion();
-    bool eventFilter(QObject *obj, QEvent *ev) Q_DECL_OVERRIDE;
-    void showCompletion(const QStringList &choices);
+    bool eventFilter(QObject *obj, QEvent *ev);
+    void showCompletion(const QStringList &choices, const QStringList &hits);
 
 public slots:
 

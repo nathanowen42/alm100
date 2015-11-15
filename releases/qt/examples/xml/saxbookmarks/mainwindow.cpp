@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include "mainwindow.h"
 #include "xbelgenerator.h"
@@ -50,7 +50,7 @@ MainWindow::MainWindow()
     labels << tr("Title") << tr("Location");
 
     treeWidget = new QTreeWidget;
-    treeWidget->header()->setSectionResizeMode(QHeaderView::Stretch);
+    treeWidget->header()->setResizeMode(QHeaderView::Stretch);
     treeWidget->setHeaderLabels(labels);
     setCentralWidget(treeWidget);
 
@@ -65,6 +65,15 @@ MainWindow::MainWindow()
 
 void MainWindow::open()
 {
+#if defined(Q_OS_SYMBIAN)
+    // Look for bookmarks on the same drive where the application is installed to,
+    // if drive is not read only. QDesktopServices::DataLocation does this check,
+    // and returns writable drive.
+    QString bookmarksFolder =
+            QDesktopServices::storageLocation(QDesktopServices::DataLocation).left(1);
+    bookmarksFolder.append(":/Data/qt/saxbookmarks");
+    QDir::setCurrent(bookmarksFolder);
+#endif
     QString fileName =
             QFileDialog::getOpenFileName(this, tr("Open Bookmark File"),
                                          QDir::currentPath(),

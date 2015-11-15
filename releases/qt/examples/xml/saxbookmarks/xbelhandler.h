@@ -55,12 +55,12 @@ public:
     XbelHandler(QTreeWidget *treeWidget);
 
     bool startElement(const QString &namespaceURI, const QString &localName,
-                      const QString &qName, const QXmlAttributes &attributes) Q_DECL_OVERRIDE;
+                      const QString &qName, const QXmlAttributes &attributes);
     bool endElement(const QString &namespaceURI, const QString &localName,
-                    const QString &qName) Q_DECL_OVERRIDE;
-    bool characters(const QString &str) Q_DECL_OVERRIDE;
-    bool fatalError(const QXmlParseException &exception) Q_DECL_OVERRIDE;
-    QString errorString() const Q_DECL_OVERRIDE;
+                    const QString &qName);
+    bool characters(const QString &str);
+    bool fatalError(const QXmlParseException &exception);
+    QString errorString() const;
 
 private:
     QTreeWidgetItem *createChildItem(const QString &tagName);

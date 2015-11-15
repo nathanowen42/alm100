@@ -55,7 +55,7 @@ public:
     MainWindow();
 
 protected:
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     void open();

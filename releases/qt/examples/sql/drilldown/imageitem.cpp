@@ -41,11 +41,12 @@
 #include "imageitem.h"
 
 //! [0]
-ImageItem::ImageItem(int id, const QPixmap &pixmap, QGraphicsItem *parent)
-    : QGraphicsPixmapItem(pixmap, parent)
+ImageItem::ImageItem(int id, const QPixmap &pixmap, QGraphicsItem *parent,
+                     QGraphicsScene *scene)
+    : QGraphicsPixmapItem(pixmap, parent, scene)
 {
     recordId = id;
-    setAcceptHoverEvents(true);
+    setAcceptsHoverEvents(true);
 
     timeLine.setDuration(150);
     timeLine.setFrameRange(0, 150);
@@ -90,9 +91,9 @@ void ImageItem::setFrame(int frame)
     adjust();
     QPointF center = boundingRect().center();
 
-    setTransform(QTransform::fromTranslate(center.x(), center.y()), true);
-    setTransform(QTransform::fromScale(1 + frame / 330.0, 1 + frame / 330.0), true);
-    setTransform(QTransform::fromTranslate(-center.x(), -center.y()), true);
+    translate(center.x(), center.y());
+    scale(1 + frame / 330.0, 1 + frame / 330.0);
+    translate(-center.x(), -center.y());
 }
 //! [3]
 
@@ -100,7 +101,7 @@ void ImageItem::setFrame(int frame)
 void ImageItem::adjust()
 {
     QMatrix matrix;
-    matrix.scale(120/ boundingRect().width(), 120/ boundingRect().height());
+    matrix.scale(150/ boundingRect().width(), 120/ boundingRect().height());
     setMatrix(matrix);
 }
 //! [4]

@@ -57,7 +57,7 @@ UENV_FILE=${BOOT_DIR}/uEnv.txt
 MLO_FILE=${BOOT_DIR}/MLO
 ROOTFS_FILE=${BUILD_DIR}/rootfs
 DEVICE_TREE_BINARY=${RELEASES}/dtb/am335x-boneblack.dtb
-KERNELIMAGE=${RELEASES}/kernel/4.1.10-.zImage
+KERNELIMAGE=${RELEASES}/kernel/4.1.13-.zImage
 
 clear
 cat << EOM

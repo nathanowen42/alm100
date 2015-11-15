@@ -38,16 +38,20 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 
 #include "httpwindow.h"
 #include "ui_authenticationdialog.h"
 
 HttpWindow::HttpWindow(QWidget *parent)
+#ifdef Q_WS_MAEMO_5
+    : QWidget(parent)
+#else
     : QDialog(parent)
+#endif
 {
-#ifndef QT_NO_SSL
+#ifndef QT_NO_OPENSSL
     urlLineEdit = new QLineEdit("https://qt-project.org/");
 #else
     urlLineEdit = new QLineEdit("http://qt-project.org/");
@@ -68,18 +72,22 @@ HttpWindow::HttpWindow(QWidget *parent)
     buttonBox->addButton(downloadButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
 
+#ifndef Q_WS_MAEMO_5
     progressDialog = new QProgressDialog(this);
+#endif
 
     connect(urlLineEdit, SIGNAL(textChanged(QString)),
             this, SLOT(enableDownloadButton()));
 
     connect(&qnam, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
             this, SLOT(slotAuthenticationRequired(QNetworkReply*,QAuthenticator*)));
-#ifndef QT_NO_SSL
+#ifndef QT_NO_OPENSSL
     connect(&qnam, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)),
             this, SLOT(sslErrors(QNetworkReply*,QList<QSslError>)));
 #endif
+#ifndef Q_WS_MAEMO_5
     connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
+#endif
     connect(downloadButton, SIGNAL(clicked()), this, SLOT(downloadFile()));
     connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
 
@@ -137,8 +145,10 @@ void HttpWindow::downloadFile()
         return;
     }
 
+#ifndef Q_WS_MAEMO_5
     progressDialog->setWindowTitle(tr("HTTP"));
     progressDialog->setLabelText(tr("Downloading %1.").arg(fileName));
+#endif
     downloadButton->setEnabled(false);
 
     // schedule the request
@@ -164,11 +174,15 @@ void HttpWindow::httpFinished()
             file = 0;
         }
         reply->deleteLater();
+#ifndef Q_WS_MAEMO_5
         progressDialog->hide();
+#endif
         return;
     }
 
+#ifndef Q_WS_MAEMO_5
     progressDialog->hide();
+#endif
     file->flush();
     file->close();
 
@@ -180,7 +194,7 @@ void HttpWindow::httpFinished()
                                  tr("Download failed: %1.")
                                  .arg(reply->errorString()));
         downloadButton->setEnabled(true);
-    } else if (!redirectionTarget.isNull()) {
+    } else if (!redirectionTarget.isNull()) {        
         QUrl newUrl = url.resolved(redirectionTarget.toUrl());
         if (QMessageBox::question(this, tr("HTTP"),
                                   tr("Redirect to %1 ?").arg(newUrl.toString()),
@@ -219,8 +233,13 @@ void HttpWindow::updateDataReadProgress(qint64 bytesRead, qint64 totalBytes)
     if (httpRequestAborted)
         return;
 
+#ifndef Q_WS_MAEMO_5
     progressDialog->setMaximum(totalBytes);
     progressDialog->setValue(bytesRead);
+#else
+    Q_UNUSED(bytesRead);
+    Q_UNUSED(totalBytes);
+#endif
 }
 
 void HttpWindow::enableDownloadButton()
@@ -247,7 +266,7 @@ void HttpWindow::slotAuthenticationRequired(QNetworkReply*,QAuthenticator *authe
     }
 }
 
-#ifndef QT_NO_SSL
+#ifndef QT_NO_OPENSSL
 void HttpWindow::sslErrors(QNetworkReply*,const QList<QSslError> &errors)
 {
     QString errorString;
@@ -256,7 +275,7 @@ void HttpWindow::sslErrors(QNetworkReply*,const QList<QSslError> &errors)
             errorString += ", ";
         errorString += error.errorString();
     }
-
+    
     if (QMessageBox::warning(this, tr("HTTP"),
                              tr("One or more SSL errors has occurred: %1").arg(errorString),
                              QMessageBox::Ignore | QMessageBox::Abort) == QMessageBox::Ignore) {

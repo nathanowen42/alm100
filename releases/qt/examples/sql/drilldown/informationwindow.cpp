@@ -41,35 +41,38 @@
 #include "informationwindow.h"
 
 //! [0]
-InformationWindow::InformationWindow(int id, QSqlRelationalTableModel *items,
+InformationWindow::InformationWindow(int id, QSqlRelationalTableModel *offices,
                                      QWidget *parent)
     : QDialog(parent)
 {
 //! [0] //! [1]
-    QLabel *itemLabel = new QLabel(tr("Item: "));
+    QLabel *locationLabel = new QLabel(tr("Location: "));
+    QLabel *countryLabel = new QLabel(tr("Country: "));
     QLabel *descriptionLabel = new QLabel(tr("Description: "));
     QLabel *imageFileLabel = new QLabel(tr("Image file: "));
 
     createButtons();
 
-    itemText = new QLabel;
+    locationText = new QLabel;
+    countryText = new QLabel;
     descriptionEditor = new QTextEdit;
 //! [1]
 
 //! [2]
     imageFileEditor = new QComboBox;
-    imageFileEditor->setModel(items->relationModel(1));
-    imageFileEditor->setModelColumn(items->relationModel(1)->fieldIndex("file"));
+    imageFileEditor->setModel(offices->relationModel(1));
+    imageFileEditor->setModelColumn(offices->relationModel(1)->fieldIndex("file"));
 //! [2]
 
 //! [3]
     mapper = new QDataWidgetMapper(this);
-    mapper->setModel(items);
+    mapper->setModel(offices);
     mapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
     mapper->setItemDelegate(new QSqlRelationalDelegate(mapper));
     mapper->addMapping(imageFileEditor, 1);
-    mapper->addMapping(itemText, 2, "text");
-    mapper->addMapping(descriptionEditor, 3);
+    mapper->addMapping(locationText, 2, "text");
+    mapper->addMapping(countryText, 3, "text");
+    mapper->addMapping(descriptionEditor, 4);
     mapper->setCurrentIndex(id);
 //! [3]
 
@@ -80,7 +83,8 @@ InformationWindow::InformationWindow(int id, QSqlRelationalTableModel *items,
             this, SLOT(enableButtons()));
 
     QFormLayout *formLayout = new QFormLayout;
-    formLayout->addRow(itemLabel, itemText);
+    formLayout->addRow(locationLabel, locationText);
+    formLayout->addRow(countryLabel, countryText);
     formLayout->addRow(imageFileLabel, imageFileEditor);
     formLayout->addRow(descriptionLabel, descriptionEditor);
 
@@ -89,19 +93,23 @@ InformationWindow::InformationWindow(int id, QSqlRelationalTableModel *items,
     layout->addWidget(buttonBox);
     setLayout(layout);
 
-    itemId = id;
+    locationId = id;
     displayedImage = imageFileEditor->currentText();
 
-    setWindowFlags(Qt::Window);
+    // Commented the following line. Now the window will look like dialog and the Qt will place the QDialogBox buttons to menu area in Symbian.
+    // Too bad that the revert button is missing, Should the Qt place the buttons under Option menu in the menu area?!
+    // If the Qt::Window flag was used, the background of window is white in symbian and the QLabels can't be regognized from the background.
+
+    //setWindowFlags(Qt::Window);
     enableButtons(false);
-    setWindowTitle(itemText->text());
+    setWindowTitle(tr("Office: %1").arg(locationText->text()));
 }
 //! [4]
 
 //! [5]
 int InformationWindow::id()
 {
-    return itemId;
+    return locationId;
 }
 //! [5]
 
@@ -120,11 +128,11 @@ void InformationWindow::submit()
 
     if (displayedImage != newImage) {
         displayedImage = newImage;
-        emit imageChanged(itemId, newImage);
+        emit imageChanged(locationId, newImage);
     }
 
     mapper->submit();
-    mapper->setCurrentIndex(itemId);
+    mapper->setCurrentIndex(locationId);
 
     enableButtons(false);
 }

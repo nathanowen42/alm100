@@ -1,23 +1,19 @@
-requires(qtHaveModule(widgets))
-
 TEMPLATE      = subdirs
 
-SUBDIRS             =   books \
-                        drilldown \
-                         cachedtable \
+SUBDIRS             =   drilldown
+!symbian: SUBDIRS   +=  cachedtable \
                         relationaltablemodel \
                         sqlwidgetmapper
 
-!wince:  SUBDIRS   +=  masterdetail
+!wince*:  SUBDIRS   +=  masterdetail
 
-!wince:  SUBDIRS += \
+!wince*:!symbian: SUBDIRS += \
                         querymodel \
                         tablemodel
 
-!cross_compile:{
-    contains(QT_BUILD_PARTS, tools):{
-        SUBDIRS += sqlbrowser
-    }
-}
 
-EXAMPLE_FILES = connection.h
+# install
+sources.files = connection.h sql.pro README
+sources.path = $$[QT_INSTALL_EXAMPLES]/sql
+INSTALLS += sources
+

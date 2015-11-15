@@ -38,7 +38,9 @@
 **
 ****************************************************************************/
 #include "imagescaling.h"
-#include <qmath.h>
+#include "math.h"
+
+#ifndef QT_NO_CONCURRENT
 
 const int imageSize = 100;
 
@@ -48,8 +50,8 @@ QImage scale(const QString &imageFileName)
     return image.scaled(QSize(imageSize, imageSize), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
-Images::Images(QWidget *parent)
-    : QWidget(parent)
+Images::Images(QWidget *parent) 
+: QWidget(parent)
 {
     setWindowTitle(tr("Image loading and scaling example"));
     resize(800, 600);
@@ -64,11 +66,11 @@ Images::Images(QWidget *parent)
     cancelButton = new QPushButton(tr("Cancel"));
     cancelButton->setEnabled(false);
     connect(cancelButton, SIGNAL(clicked()), imageScaling, SLOT(cancel()));
-
+   
     pauseButton = new QPushButton(tr("Pause/Resume"));
     pauseButton->setEnabled(false);
     connect(pauseButton, SIGNAL(clicked()), imageScaling, SLOT(togglePaused()));
-
+   
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(openButton);
     buttonLayout->addWidget(cancelButton);
@@ -98,9 +100,9 @@ void Images::open()
         imageScaling->waitForFinished();
     }
 
-    // Show a file open dialog at QStandardPaths::PicturesLocation.
-    QStringList files = QFileDialog::getOpenFileNames(this, tr("Select Images"),
-                            QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+    // Show a file open dialog at QDesktopServices::PicturesLocation.
+    QStringList files = QFileDialog::getOpenFileNames(this, tr("Select Images"), 
+                            QDesktopServices::storageLocation(QDesktopServices::PicturesLocation),
                             "*.jpg *.png");
 
     if (files.count() == 0)
@@ -110,7 +112,7 @@ void Images::open()
     qDeleteAll(labels);
     labels.clear();
 
-    int dim = qSqrt(qreal(files.count())) + 1;
+    int dim = sqrt(qreal(files.count())) + 1;
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j < dim; ++j) {
             QLabel *imageLabel = new QLabel;
@@ -139,3 +141,6 @@ void Images::finished()
     cancelButton->setEnabled(false);
     pauseButton->setEnabled(false);
 }
+
+#endif // QT_NO_CONCURRENT
+

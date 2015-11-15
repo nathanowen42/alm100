@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include "../connection.h"
 #include "view.h"
@@ -52,8 +52,12 @@ int main(int argc, char *argv[])
     if (!createConnection())
         return 1;
 
-    View view("items", "images");
+    View view("offices", "images");
+#ifndef Q_OS_SYMBIAN
     view.show();
+#else
+    view.showMaximized();
+#endif
 #ifdef QT_KEYPAD_NAVIGATION
     QApplication::setNavigationMode(Qt::NavigationModeCursorAuto);
 #endif

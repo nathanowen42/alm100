@@ -40,8 +40,9 @@
 #ifndef IMAGESCALING_H
 #define IMAGESCALING_H
 
-#include <QtWidgets>
-#include <QtConcurrent>
+#include <QtGui>
+
+#ifndef QT_NO_CONCURRENT
 
 class Images : public QWidget
 {
@@ -62,5 +63,19 @@ private:
     QGridLayout *imagesLayout;
     QFutureWatcher<QImage> *imageScaling;
 };
+
+#else
+
+// Dummy class required because QT_NO_CONCURRENT is not set when moc is run.
+class Images : public QWidget
+{
+Q_OBJECT
+public Q_SLOTS:
+    void open() {}
+    void showImage(int) {}
+    void finished() {}
+};
+
+#endif // QT_NO_CONCURRENT
 
 #endif // IMAGESCALING_H

@@ -6,9 +6,6 @@ BUSYBOX_DIR=busybox
 
 source ${TOPDIR}/../../build_tools/build_paths.sh
 
-export PATH=${TOOLCHAIN}/bin:${PATH}
-
-
 update_repo () {
 	cd ${TOPDIR}/${BUSYBOX_DIR}
 	echo "Checking for repo updates"
@@ -27,7 +24,7 @@ make_busybox () {
 		exit
 	}
 
-	make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- install ||
+	make -j4 ARCH=arm CROSS_COMPILE=${TOOLCHAIN}/arm-linux-gnueabihf- install ||
 	{
 		echo "Install Failed.  Script will exit..."
 		exit

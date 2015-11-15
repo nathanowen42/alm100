@@ -42,7 +42,7 @@
 #define IMAGEITEM_H
 
 #include <QtCore>
-#include <QtWidgets/QGraphicsPixmapItem>
+#include <QtGui/QGraphicsPixmapItem>
 
 //! [0]
 class ImageItem : public QObject, public QGraphicsPixmapItem
@@ -50,14 +50,15 @@ class ImageItem : public QObject, public QGraphicsPixmapItem
     Q_OBJECT
 
 public:
-    ImageItem(int id, const QPixmap &pixmap, QGraphicsItem *parent = 0);
+    ImageItem(int id, const QPixmap &pixmap, QGraphicsItem *parent = 0,
+              QGraphicsScene *scene = 0);
 
     void adjust();
     int id();
 
 protected:
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 
 private slots:
     void setFrame(int frame);

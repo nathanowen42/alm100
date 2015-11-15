@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include "addtorrentdialog.h"
 #include "mainwindow.h"
@@ -52,14 +52,12 @@ class TorrentView : public QTreeWidget
 public:
     TorrentView(QWidget *parent = 0);
 
-#ifndef QT_NO_DRAGANDDROP
 signals:
     void fileDropped(const QString &fileName);
 
 protected:
-    void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
-    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
-#endif
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dropEvent(QDropEvent *event);
 };
 
 // TorrentViewDelegate is used to draw the progress bars.
@@ -69,8 +67,8 @@ class TorrentViewDelegate : public QItemDelegate
 public:
     inline TorrentViewDelegate(MainWindow *mainWindow) : QItemDelegate(mainWindow) {}
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index ) const Q_DECL_OVERRIDE
+    inline void paint(QPainter *painter, const QStyleOptionViewItem &option,
+                      const QModelIndex &index ) const
     {
         if (index.column() != 2) {
             QItemDelegate::paint(painter, option, index);
@@ -92,7 +90,7 @@ public:
         // Set the progress and text values of the style option.
         int progress = qobject_cast<MainWindow *>(parent())->clientForRow(index.row())->progress();
         progressBarOption.progress = progress < 0 ? 0 : progress;
-        progressBarOption.text = QString::asprintf("%d%%", progressBarOption.progress);
+        progressBarOption.text = QString().sprintf("%d%%", progressBarOption.progress);
 
         // Draw the progress bar onto the view.
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
@@ -130,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *newTorrentAction = new QAction(QIcon(":/icons/bottom.png"), tr("Add &new torrent"), this);
     pauseTorrentAction = new QAction(QIcon(":/icons/player_pause.png"), tr("&Pause torrent"), this);
     removeTorrentAction = new QAction(QIcon(":/icons/player_stop.png"), tr("&Remove torrent"), this);
-
+    
     // File menu
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(newTorrentAction);
@@ -172,10 +170,6 @@ MainWindow::MainWindow(QWidget *parent)
     bottomBar->addWidget(uploadLimitSlider);
     bottomBar->addWidget((uploadLimitLabel = new QLabel(tr("0 KB/s"))));
     uploadLimitLabel->setFixedSize(QSize(fm.width(tr("99999 KB/s")), fm.lineSpacing()));
-
-#ifdef Q_OS_OSX
-    setUnifiedTitleAndToolBarOnMac(true);
-#endif
 
     // Set up connections
     connect(torrentView, SIGNAL(itemSelectionChanged()),
@@ -240,7 +234,7 @@ int MainWindow::rowOfClient(TorrentClient *client) const
 void MainWindow::loadSettings()
 {
     // Load base settings (last working directory, upload/download limits).
-    QSettings settings("QtProject", "Torrent");
+    QSettings settings("Trolltech", "Torrent");
     lastDirectory = settings.value("LastDirectory").toString();
     if (lastDirectory.isEmpty())
         lastDirectory = QDir::currentPath();
@@ -417,7 +411,7 @@ void MainWindow::saveSettings()
     saveChanges = false;
 
     // Prepare and reset the settings
-    QSettings settings("QtProject", "Torrent");
+    QSettings settings("Trolltech", "Torrent");
     settings.clear();
 
     settings.setValue("LastDirectory", lastDirectory);
@@ -509,7 +503,8 @@ void MainWindow::updateDownloadRate(int bytesPerSecond)
     // Update the download rate.
     TorrentClient *client = qobject_cast<TorrentClient *>(sender());
     int row = rowOfClient(client);
-    const QString num = QString::asprintf("%.1f KB/s", bytesPerSecond / 1024.0);
+    QString num;
+    num.sprintf("%.1f KB/s", bytesPerSecond / 1024.0);
     torrentView->topLevelItem(row)->setText(3, num);
 
     if (!saveChanges) {
@@ -523,7 +518,8 @@ void MainWindow::updateUploadRate(int bytesPerSecond)
     // Update the upload rate.
     TorrentClient *client = qobject_cast<TorrentClient *>(sender());
     int row = rowOfClient(client);
-    const QString num = QString::asprintf("%.1f KB/s", bytesPerSecond / 1024.0);
+    QString num;
+    num.sprintf("%.1f KB/s", bytesPerSecond / 1024.0);
     torrentView->topLevelItem(row)->setText(4, num);
 
     if (!saveChanges) {
@@ -591,14 +587,14 @@ static int rateFromValue(int value)
 void MainWindow::setUploadLimit(int value)
 {
     int rate = rateFromValue(value);
-    uploadLimitLabel->setText(tr("%1 KB/s").arg(QString::asprintf("%4d", rate)));
+    uploadLimitLabel->setText(tr("%1 KB/s").arg(QString().sprintf("%4d", rate)));
     RateController::instance()->setUploadLimit(rate * 1024);
 }
 
 void MainWindow::setDownloadLimit(int value)
 {
     int rate = rateFromValue(value);
-    downloadLimitLabel->setText(tr("%1 KB/s").arg(QString::asprintf("%4d", rate)));
+    downloadLimitLabel->setText(tr("%1 KB/s").arg(QString().sprintf("%4d", rate)));
     RateController::instance()->setDownloadLimit(rate * 1024);
 }
 
@@ -692,12 +688,9 @@ void MainWindow::closeEvent(QCloseEvent *)
 TorrentView::TorrentView(QWidget *parent)
     : QTreeWidget(parent)
 {
-#ifndef QT_NO_DRAGANDDROP
     setAcceptDrops(true);
-#endif
 }
 
-#ifndef QT_NO_DRAGANDDROP
 void TorrentView::dragMoveEvent(QDragMoveEvent *event)
 {
     // Accept file actions with a '.torrent' extension.
@@ -715,6 +708,5 @@ void TorrentView::dropEvent(QDropEvent *event)
     if (QFile::exists(fileName) && fileName.toLower().endsWith(".torrent"))
         emit fileDropped(fileName);
 }
-#endif
 
 #include "mainwindow.moc"

@@ -55,7 +55,7 @@ its operation, and also allows very large data sources to be read.
 
 
 #include <QtCore>
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 
 #include "rsslisting.h"
@@ -74,9 +74,26 @@ its operation, and also allows very large data sources to be read.
 RSSListing::RSSListing(QWidget *parent)
     : QWidget(parent), currentReply(0)
 {
+#ifdef Q_OS_SYMBIAN
+    // Set Internet Access Point
+    QNetworkConfigurationManager manager;
+    const bool canStartIAP = manager.capabilities() & QNetworkConfigurationManager::CanStartAndStopInterfaces;
+
+    // Is there default access point, use it
+    QNetworkConfiguration cfg = manager.defaultConfiguration();
+    if (!cfg.isValid() || !canStartIAP) {
+        // Available Access Points not found
+        QMessageBox::warning(this, "Error", "No access point");
+        return;
+    }
+
+    m_session = new QNetworkSession(cfg);
+    m_session->open();
+    m_session->waitForOpened();
+#endif
 
     lineEdit = new QLineEdit(this);
-    lineEdit->setText("http://blog.qt.io/feed/");
+    lineEdit->setText("http://labs.qt.nokia.com/blogs/feed");
 
     fetchButton = new QPushButton(tr("Fetch"), this);
 
@@ -86,7 +103,7 @@ RSSListing::RSSListing(QWidget *parent)
     QStringList headerLabels;
     headerLabels << tr("Title") << tr("Link");
     treeWidget->setHeaderLabels(headerLabels);
-    treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    treeWidget->header()->setResizeMode(QHeaderView::ResizeToContents);
 
     connect(&manager, SIGNAL(finished(QNetworkReply*)),
              this, SLOT(finished(QNetworkReply*)));
@@ -105,7 +122,9 @@ RSSListing::RSSListing(QWidget *parent)
     layout->addWidget(treeWidget);
 
     setWindowTitle(tr("RSS listing example"));
+#if !defined(Q_OS_SYMBIAN) && !defined(Q_WS_MAEMO_5)
     resize(640,480);
+#endif
 }
 
 /*

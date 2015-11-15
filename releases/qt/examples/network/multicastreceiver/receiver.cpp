@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 
 #include "receiver.h"
@@ -52,7 +52,7 @@ Receiver::Receiver(QWidget *parent)
     quitButton = new QPushButton(tr("&Quit"));
 
     udpSocket = new QUdpSocket(this);
-    udpSocket->bind(QHostAddress::AnyIPv4, 45454, QUdpSocket::ShareAddress);
+    udpSocket->bind(45454, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
     connect(udpSocket, SIGNAL(readyRead()),

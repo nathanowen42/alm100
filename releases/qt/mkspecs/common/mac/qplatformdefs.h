@@ -5,7 +5,7 @@
 **
 ** This file is part of the qmake spec of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL21$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -26,6 +26,14 @@
 ** As a special exception, The Qt Company gives you certain additional
 ** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 3.0 as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 3.0 requirements will be
+** met: http://www.gnu.org/copyleft/gpl.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -62,7 +70,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#define __APPLE_USE_RFC_3542
 #include <netinet/in.h>
 #ifndef QT_NO_IPV6IFNAME
 #include <net/if.h>
@@ -76,11 +83,15 @@
 
 #define QT_OPEN_LARGEFILE       0
 
+#if (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4)
 #define QT_SOCKLEN_T            socklen_t
+#else
+#define QT_SOCKLEN_T            int
+#endif
 
 #define QT_SIGNAL_IGNORE        (void (*)(int))1
 
-#define QT_SNPRINTF             ::snprintf
-#define QT_VSNPRINTF            ::vsnprintf
+#define QT_SNPRINTF		::snprintf
+#define QT_VSNPRINTF		::vsnprintf
 
 #endif // QPLATFORMDEFS_H

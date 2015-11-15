@@ -78,7 +78,9 @@ QByteArray ConnectionManager::clientId() const
         // Generate peer id
         int startupTime = int(QDateTime::currentDateTime().toTime_t());
 
-        id += QString::asprintf("-QT%04x-", (QT_VERSION % 0xffff00) >> 8).toLatin1();
+        QString s;
+        s.sprintf("-QT%04x-", (QT_VERSION % 0xffff00) >> 8);
+        id += s.toLatin1();
         id += QByteArray::number(startupTime, 10);
         id += QByteArray(20 - id.size(), '-');
     }

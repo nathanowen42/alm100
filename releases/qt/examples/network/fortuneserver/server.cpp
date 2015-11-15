@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 
 #include <stdlib.h>
@@ -55,7 +55,7 @@ Server::Server(QWidget *parent)
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+        QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
         settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
         settings.endGroup();
@@ -115,7 +115,7 @@ void Server::sessionOpened()
         else
             id = config.identifier();
 
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+        QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
         settings.beginGroup(QLatin1String("QtNetwork"));
         settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
         settings.endGroup();

@@ -64,9 +64,9 @@ public slots:
     void print();
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
-    bool event(QEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event);
+    void resizeEvent(QResizeEvent *event);
+    bool event(QEvent *event);
 
 private:
     void resizeImage(QImage *image, const QSize &newSize);

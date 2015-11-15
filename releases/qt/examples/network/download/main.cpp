@@ -86,10 +86,7 @@ void DownloadManager::doDownload(const QUrl &url)
 {
     QNetworkRequest request(url);
     QNetworkReply *reply = manager.get(request);
-
-#ifndef QT_NO_SSL
     connect(reply, SIGNAL(sslErrors(QList<QSslError>)), SLOT(sslErrors(QList<QSslError>)));
-#endif
 
     currentDownloads.append(reply);
 }
@@ -154,11 +151,9 @@ void DownloadManager::execute()
 
 void DownloadManager::sslErrors(const QList<QSslError> &sslErrors)
 {
-#ifndef QT_NO_SSL
+#ifndef QT_NO_OPENSSL
     foreach (const QSslError &error, sslErrors)
         fprintf(stderr, "SSL error: %s\n", qPrintable(error.errorString()));
-#else
-    Q_UNUSED(sslErrors);
 #endif
 }
 

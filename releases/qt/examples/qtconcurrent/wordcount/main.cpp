@@ -50,6 +50,8 @@
 
 #include <qtconcurrentmap.h>
 
+#ifndef QT_NO_CONCURRENT
+
 using namespace QtConcurrent;
 
 /*
@@ -122,7 +124,11 @@ int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
     qDebug() << "finding files...";
+#ifdef Q_WS_MAEMO_5
+    QStringList files = findFiles("/usr/", QStringList() << "*.sh");
+#else
     QStringList files = findFiles("../../", QStringList() << "*.cpp" << "*.h");
+#endif
     qDebug() << files.count() << "files";
 
     qDebug() << "warmup";
@@ -153,3 +159,27 @@ int main(int argc, char** argv)
     }
     qDebug() << "MapReduce speedup x" << ((double)singleThreadTime - (double)mapReduceTime) / (double)mapReduceTime + 1;
 }
+
+#else
+
+#include <QLabel>
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    QString text("Qt Concurrent is not yet supported on this platform");
+
+    QLabel *label = new QLabel(text);
+    label->setWordWrap(true);
+
+#if defined(Q_WS_S60) || defined(Q_WS_MAEMO_5)
+    label->showMaximized();
+#else
+    label->show();
+#endif
+    qDebug() << text;
+
+    app.exec();
+}
+
+#endif

@@ -27,6 +27,7 @@ sudo apt-get install gcc-arm-linux-gnueabi
 apt-get install gawk
 
 #for qt
+sudo apt-get install qt-sdk
 sudo apt-get -y build-dep qt5-default
 sudo apt-get -y install build-essential perl python git
 sudo apt-get -y install "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev

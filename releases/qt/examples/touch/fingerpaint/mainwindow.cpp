@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include "mainwindow.h"
 #include "scribblearea.h"
@@ -186,7 +186,7 @@ bool MainWindow::maybeSave()
                           tr("The image has been modified.\n"
                              "Do you want to save your changes?"),
                           QMessageBox::Save | QMessageBox::Discard
-                          | QMessageBox::Cancel);
+			  | QMessageBox::Cancel);
         if (ret == QMessageBox::Save) {
             return saveFile("png");
         } else if (ret == QMessageBox::Cancel) {
@@ -206,12 +206,12 @@ bool MainWindow::saveFile(const QByteArray &fileFormat)
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                                initialPath,
                                tr("%1 Files (*.%2);;All Files (*)")
-                               .arg(QString::fromLatin1(fileFormat.toUpper()))
-                               .arg(QString::fromLatin1(fileFormat)));
+                               .arg(QString(fileFormat.toUpper()))
+                               .arg(QString(fileFormat)));
     if (fileName.isEmpty()) {
         return false;
     } else {
-        return scribbleArea->saveImage(fileName, fileFormat.constData());
+        return scribbleArea->saveImage(fileName, fileFormat);
     }
 }
 //! [20]

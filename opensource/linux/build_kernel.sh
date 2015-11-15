@@ -6,13 +6,12 @@
 TOPDIR=$(pwd)
 
 source ${TOPDIR}/../../build_tools/build_paths.sh
-export PATH=${TOOLCHAIN}/bin:${PATH}
 
 KERNEL_DIR=${TOPDIR}/ti-linux-kernel
 KERNEL_CONFIG=omap2plus_defconfig
 RELEASE_DIR=${TOPDIR}/../../releases/
 CONFIG_FILE=${TOPDIR}/configs/linux_config
-CC=arm-linux-gnueabihf-
+CC=${TOOLCHAIN}/arm-linux-gnueabihf-
 LOADADDR=0x82000000
 
 
@@ -23,6 +22,8 @@ update_repo_if_needed () {
 
 	cd ${KERNEL_DIR}
 
+	git pull origin master
+	
 	branch_name=$(git symbolic-ref -q HEAD)
 	branch_name=${branch_name##refs/heads/}
 	branch_name=${branch_name:-HEAD}
@@ -39,6 +40,12 @@ update_repo_if_needed () {
 		fi
 	fi
 
+	cd ${TOPDIR}
+}
+
+make_clean () {
+	cd ${KERNEL_DIR}
+	make mrproper
 	cd ${TOPDIR}
 }
 
@@ -97,6 +104,7 @@ make_kernel () {
 }
 
 update_repo_if_needed
+make_clean
 
 if [ "$1" == "menuconfig" ] ; then
 	make_menuconfig

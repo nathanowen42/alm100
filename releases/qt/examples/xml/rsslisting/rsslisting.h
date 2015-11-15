@@ -48,6 +48,15 @@
 #include <QXmlStreamReader>
 #include <QUrl>
 
+#ifdef Q_OS_SYMBIAN
+// Bearer
+#include <QNetworkConfigurationManager>
+#include <QNetworkSession>
+#include <QPointer>
+
+// QtMobility namespace
+QTM_USE_NAMESPACE
+#endif
 
 QT_BEGIN_NAMESPACE
 class QLineEdit;
@@ -86,6 +95,10 @@ private:
     QTreeWidget *treeWidget;
     QPushButton *fetchButton;
 
+#ifdef Q_OS_SYMBIAN
+    // for bearer management
+    QPointer<QNetworkSession> m_session;
+#endif
 };
 
 #endif

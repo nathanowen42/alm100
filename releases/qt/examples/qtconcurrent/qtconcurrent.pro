@@ -1,5 +1,3 @@
-requires(qtHaveModule(concurrent))
-
 TEMPLATE      = subdirs
 SUBDIRS       = imagescaling \
                 map \
@@ -10,15 +8,9 @@ SUBDIRS       = imagescaling \
     SUBDIRS += progressdialog
 }
 
-!qtHaveModule(gui) {
-    SUBDIRS -= \
-        map
-}
+# install
+target.path = $$[QT_INSTALL_EXAMPLES]/qtconcurrent
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS qtconcurrent.pro README
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtconcurrent
+INSTALLS += target sources
 
-!qtHaveModule(widgets) {
-    SUBDIRS -= \
-        imagescaling \
-        progressdialog \
-        runfunction \
-        wordcount
-}

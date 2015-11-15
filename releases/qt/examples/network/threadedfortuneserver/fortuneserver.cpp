@@ -58,7 +58,7 @@ FortuneServer::FortuneServer(QObject *parent)
 //! [0]
 
 //! [1]
-void FortuneServer::incomingConnection(qintptr socketDescriptor)
+void FortuneServer::incomingConnection(int socketDescriptor)
 {
     QString fortune = fortunes.at(qrand() % fortunes.size());
     FortuneThread *thread = new FortuneThread(socketDescriptor, fortune, this);

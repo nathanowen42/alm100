@@ -41,7 +41,7 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtSql>
 
 class ImageItem;
@@ -53,10 +53,10 @@ class View : public QGraphicsView
     Q_OBJECT
 
 public:
-    View(const QString &items, const QString &images, QWidget *parent = 0);
+    View(const QString &offices, const QString &images, QWidget *parent = 0);
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *event);
 //! [0]
 
 //! [1]
@@ -73,7 +73,7 @@ private:
     QGraphicsScene *scene;
     QList<InformationWindow *> informationWindows;
 //! [2] //! [3]
-    QSqlRelationalTableModel *itemTable;
+    QSqlRelationalTableModel *officeTable;
 };
 //! [3]
 

@@ -5,7 +5,7 @@
 **
 ** This file is part of the qmake spec of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL21$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -26,6 +26,14 @@
 ** As a special exception, The Qt Company gives you certain additional
 ** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 3.0 as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 3.0 requirements will be
+** met: http://www.gnu.org/copyleft/gpl.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -65,7 +73,7 @@
 #include <sys/ioctl.h>
 // Cygwin does not provide <sys/ipc.h> and <sys/shm.h> because it
 // doesn't support SysV IPC or shared memory. See for example:
-//      http://afni.nimh.nih.gov/afni/afniboard/messages/1725.html
+// 	http://afni.nimh.nih.gov/afni/afniboard/messages/1725.html
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -77,11 +85,10 @@
 #include "../common/posix/qplatformdefs.h"
 
 #undef QT_OPEN_LARGEFILE
-#define QT_OPEN_LARGEFILE 0
 
 #if defined(_XOPEN_SOURCE) && (_XOPEN_SOURCE >= 500)
-#define QT_SNPRINTF             ::snprintf
-#define QT_VSNPRINTF            ::vsnprintf
+#define QT_SNPRINTF		::snprintf
+#define QT_VSNPRINTF		::vsnprintf
 #endif
 
 #endif // QPLATFORMDEFS_H

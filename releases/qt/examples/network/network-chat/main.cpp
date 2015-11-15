@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+        QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
         settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
         settings.endGroup();
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
                 id = config.identifier();
             }
 
-            QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+            QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
             settings.beginGroup(QLatin1String("QtNetwork"));
             settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
             settings.endGroup();
@@ -88,6 +88,11 @@ int main(int argc, char *argv[])
     }
 
     ChatDialog dialog;
+#ifdef Q_OS_SYMBIAN
+    // Make application better looking and more usable on small screen
+    dialog.showMaximized();
+#else
     dialog.show();
+#endif
     return app.exec();
 }

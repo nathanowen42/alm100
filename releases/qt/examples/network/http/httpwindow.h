@@ -41,7 +41,11 @@
 #ifndef HTTPWINDOW_H
 #define HTTPWINDOW_H
 
+#ifdef Q_WS_MAEMO_5
+#include <QWidget>
+#else
 #include <QDialog>
+#endif
 #include <QNetworkAccessManager>
 #include <QUrl>
 
@@ -59,7 +63,11 @@ class QNetworkReply;
 
 QT_END_NAMESPACE
 
+#ifdef Q_WS_MAEMO_5
+class HttpWindow : public QWidget
+#else
 class HttpWindow : public QDialog
+#endif
 {
     Q_OBJECT
 
@@ -76,7 +84,7 @@ private slots:
     void updateDataReadProgress(qint64 bytesRead, qint64 totalBytes);
     void enableDownloadButton();
     void slotAuthenticationRequired(QNetworkReply*,QAuthenticator *);
-#ifndef QT_NO_SSL
+#ifndef QT_NO_OPENSSL
     void sslErrors(QNetworkReply*,const QList<QSslError> &errors);
 #endif
 
@@ -84,7 +92,9 @@ private:
     QLabel *statusLabel;
     QLabel *urlLabel;
     QLineEdit *urlLineEdit;
+#ifndef Q_WS_MAEMO_5
     QProgressDialog *progressDialog;
+#endif
     QPushButton *downloadButton;
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;

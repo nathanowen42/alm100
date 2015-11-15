@@ -41,7 +41,7 @@
 #include "graphicsview.h"
 #include "mouse.h"
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include <math.h>
 

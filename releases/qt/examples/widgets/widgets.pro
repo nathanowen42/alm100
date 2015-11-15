@@ -1,32 +1,48 @@
-requires(qtHaveModule(widgets))
-
 TEMPLATE      = subdirs
-CONFIG += no_docs_target
+SUBDIRS       = analogclock \
+                applicationicon \
+                calculator \
+                calendarwidget \
+                charactermap \
+                codeeditor \
+                digitalclock \
+                elidedlabel \
+                groupbox \
+                icons \
+                imageviewer \
+                lineedits \
+                movie \
+                orientation \
+                scribble \
+                shapedclock \
+                sliders \
+                spinboxes \
+                stylesheet \
+                tablet \
+                tetrix \
+                tooltips \
+                validators \
+                wiggly \
+                windowflags \
 
-SUBDIRS       = \
-                animation \
-                desktop \
-                dialogs \
-                draganddrop \
-                effects \
-                gestures \
-                graphicsview \
-                itemviews \
-                layouts \
-                mainwindows \
-                painting \
-                richtext \
-                scroller \
-                statemachine \
-                tools \
-                tutorials \
-                widgets
+symbian: SUBDIRS = \
+                analogclock \
+                calculator \
+                calendarwidget \
+                lineedits \
+                shapedclock \
+		symbianvibration \
+                tetrix \
+                wiggly \
+                softkeys
 
-contains(QT_CONFIG, opengl(es2)?) {
-    SUBDIRS += windowcontainer
-}
+maemo5: SUBDIRS += maemovibration
 
-!contains(QT_CONFIG, opengl(es2)?): SUBDIRS -= windowcontainer
-contains(DEFINES, QT_NO_CURSOR): SUBDIRS -= mainwindows
-contains(DEFINES, QT_NO_DRAGANDDROP): SUBDIRS -= draganddrop
-mac:SUBDIRS += mac
+contains(styles, motif): SUBDIRS += styles
+
+# install
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS widgets.pro README
+sources.path = $$[QT_INSTALL_EXAMPLES]/widgets
+INSTALLS += target sources
+

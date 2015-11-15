@@ -44,6 +44,8 @@
 #include <qtconcurrentrun.h>
 #include <QApplication>
 
+#ifndef QT_NO_CONCURRENT
+
 using namespace QtConcurrent;
 
 void hello(QString name)
@@ -59,3 +61,27 @@ int main(int argc, char **argv)
     f1.waitForFinished();
     f2.waitForFinished();
 }
+
+#else
+
+#include <QLabel>
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    QString text("Qt Concurrent is not yet supported on this platform");
+
+    QLabel *label = new QLabel(text);
+    label->setWordWrap(true);
+
+#if defined(Q_WS_S60) || defined(Q_WS_MAEMO_5)
+    label->showMaximized();
+#else
+    label->show();
+#endif
+    qDebug() << text;
+
+    app.exec();
+}
+
+#endif

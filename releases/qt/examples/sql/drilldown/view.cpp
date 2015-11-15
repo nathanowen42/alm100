@@ -43,62 +43,65 @@
 #include "view.h"
 
 //! [0]
-View::View(const QString &items, const QString &images, QWidget *parent)
+View::View(const QString &offices, const QString &images, QWidget *parent)
     : QGraphicsView(parent)
 {
-    itemTable = new QSqlRelationalTableModel(this);
-    itemTable->setTable(items);
-    itemTable->setRelation(1, QSqlRelation(images, "itemid", "file"));
-    itemTable->select();
+    officeTable = new QSqlRelationalTableModel(this);
+    officeTable->setTable(offices);
+    officeTable->setRelation(1, QSqlRelation(images, "locationid", "file"));
+    officeTable->select();
 //! [0]
 
 //! [1]
     scene = new QGraphicsScene(this);
-    scene->setSceneRect(0, 0, 465, 365);
+    scene->setSceneRect(0, 0, 465, 615);
     setScene(scene);
 
     addItems();
 
-    setMinimumSize(470, 370);
-    setMaximumSize(470, 370);
+    QGraphicsPixmapItem *logo = scene->addPixmap(QPixmap(":/logo.png"));
+    logo->setPos(30, 515);
 
-    QLinearGradient gradient(QPointF(0, 0), QPointF(0, 370));
-    gradient.setColorAt(0, QColor("#868482"));
-    gradient.setColorAt(1, QColor("#5d5b59"));
-    setBackgroundBrush(gradient);
+#if !defined(Q_OS_SYMBIAN) && !defined(Q_WS_MAEMO_5)
+    setMinimumSize(470, 620);
+    setMaximumSize(470, 620);
+#else
+    setDragMode(QGraphicsView::ScrollHandDrag);
+#endif
+
+   setWindowTitle(tr("Offices World Wide"));
 }
 //! [1]
 
 //! [3]
 void View::addItems()
 {
-    int itemCount = itemTable->rowCount();
+    int officeCount = officeTable->rowCount();
 
     int imageOffset = 150;
     int leftMargin = 70;
     int topMargin = 40;
 
-    for (int i = 0; i < itemCount; i++) {
+    for (int i = 0; i < officeCount; i++) {
         ImageItem *image;
         QGraphicsTextItem *label;
-        QSqlRecord record = itemTable->record(i);
+        QSqlRecord record = officeTable->record(i);
 
         int id = record.value("id").toInt();
         QString file = record.value("file").toString();
-        QString item = record.value("itemtype").toString();
+        QString location = record.value("location").toString();
 
-        int columnOffset = ((i % 2) * 37);
-        int x = ((i % 2) * imageOffset) + leftMargin + columnOffset;
-        int y = ((i / 2) * imageOffset) + topMargin;
+        int columnOffset = ((i / 3) * 37);
+        int x = ((i / 3) * imageOffset) + leftMargin + columnOffset;
+        int y = ((i % 3) * imageOffset) + topMargin;
 
         image = new ImageItem(id, QPixmap(":/" + file));
         image->setData(0, i);
         image->setPos(x, y);
         scene->addItem(image);
 
-        label = scene->addText(item);
-        label->setDefaultTextColor(QColor("#d7d6d5"));
-        QPointF labelOffset((120 - label->boundingRect().width()) / 2, 120.0);
+        label = scene->addText(location);
+        QPointF labelOffset((150 - label->boundingRect().width()) / 2, 120.0);
         label->setPos(QPointF(x, y) + labelOffset);
     }
 }
@@ -119,7 +122,7 @@ void View::mouseReleaseEvent(QMouseEvent *event)
 void View::showInformation(ImageItem *image)
 {
     int id = image->id();
-    if (id < 0 || id >= itemTable->rowCount())
+    if (id < 0 || id >= officeTable->rowCount())
         return;
 
     InformationWindow *window = findWindow(id);
@@ -127,16 +130,24 @@ void View::showInformation(ImageItem *image)
         window->raise();
         window->activateWindow();
     } else if (window && !window->isVisible()) {
+#ifndef Q_OS_SYMBIAN
         window->show();
+#else
+        window->showMaximized();
+#endif
     } else {
         InformationWindow *window;
-        window = new InformationWindow(id, itemTable, this);
+        window = new InformationWindow(id, officeTable, this);
 
         connect(window, SIGNAL(imageChanged(int,QString)),
                 this, SLOT(updateImage(int,QString)));
 
+#ifndef Q_OS_SYMBIAN
         window->move(pos() + QPoint(20, 40));
         window->show();
+#else
+        window->showMaximized();
+#endif
         informationWindows.append(window);
     }
 }

@@ -1,28 +1,21 @@
 #configuration
-CONFIG +=  shared qpa no_mocdepend release qt_no_framework
-host_build {
-    QT_ARCH = x86_64
-    QT_TARGET_ARCH = x86_64
-} else {
-    QT_ARCH = x86_64
-    QMAKE_DEFAULT_LIBDIRS = /usr/lib/gcc/x86_64-linux-gnu/4.9 /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu /lib
-    QMAKE_DEFAULT_INCDIRS = /usr/include/c++/4.9 /usr/include/x86_64-linux-gnu/c++/4.9 /usr/include/c++/4.9/backward /usr/lib/gcc/x86_64-linux-gnu/4.9/include /usr/local/include /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed /usr/include/x86_64-linux-gnu /usr/include
-}
-QT_CONFIG +=  minimal-config small-config medium-config large-config full-config gtk2 gtkstyle fontconfig libudev evdev xkbcommon-evdev libinput xlib xrender xcb-plugin xcb-render xcb-glx xcb-xlib xcb-sm accessibility-atspi-bridge linuxfb kms c++11 c++14 accessibility egl egl_x11 eglfs opengl shared qpa reduce_exports reduce_relocations clock-gettime clock-monotonic posix_fallocate mremap getaddrinfo ipv6ifname getifaddrs inotify eventfd threadsafe-cloexec system-jpeg system-png png system-freetype harfbuzz system-zlib mtdev nis cups iconv glib dbus dbus-linked openssl xcb xinput2 rpath alsa pulseaudio icu concurrent audio-backend release
+CONFIG +=  cross_compile shared def_files_disabled no_mocdepend release stl qt_no_framework
+QT_ARCH = arm
+QT_EDITION = OpenSource
+QT_CONFIG +=  minimal-config small-config medium-config large-config full-config no-pkg-config qt3support shared embedded reduce_exports ipv6 clock-gettime clock-monotonic mremap getaddrinfo ipv6ifname getifaddrs inotify png freetype zlib nis concurrent multimedia audio-backend svg script scripttools declarative release
 
 #versioning
-QT_VERSION = 5.6.0
-QT_MAJOR_VERSION = 5
-QT_MINOR_VERSION = 6
-QT_PATCH_VERSION = 0
+QT_VERSION = 4.8.7
+QT_MAJOR_VERSION = 4
+QT_MINOR_VERSION = 8
+QT_PATCH_VERSION = 7
 
 #namespaces
 QT_LIBINFIX = 
 QT_NAMESPACE = 
+QT_NAMESPACE_MAC_CRC = 
 
-QT_EDITION = OpenSource
-
-QT_COMPILER_STDCXX = 199711
+QMAKE_RPATHDIR += "/opt/qt/lib"
 QT_GCC_MAJOR_VERSION = 4
 QT_GCC_MINOR_VERSION = 9
-QT_GCC_PATCH_VERSION = 2
+QT_GCC_PATCH_VERSION = 3

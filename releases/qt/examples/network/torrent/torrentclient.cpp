@@ -50,8 +50,6 @@
 #include <QtCore>
 #include <QNetworkInterface>
 
-#include <algorithm>
-
 // These constants could also be configurable by the user.
 static const int ServerMinPort = 6881;
 static const int ServerMaxPort = /* 6889 */ 7000;
@@ -64,6 +62,7 @@ static const int RateControlTimerDelay = 1000;
 static const int MinimumTimeBeforeRevisit = 30;
 static const int MaxUploads = 4;
 static const int UploadScheduleInterval = 10000;
+static const int EndGamePieces = 5;
 
 class TorrentPiece {
 public:
@@ -748,7 +747,7 @@ QList<TorrentPeer *> TorrentClient::weighedFreePeers() const
         }
         points << QPair<int, TorrentPeer *>(tmp, peer);
     }
-    std::sort(points.begin(), points.end());
+    qSort(points);
 
     // Minimize the list so the point difference is never more than 1.
     typedef QPair<int,TorrentPeer*> PointPair;
@@ -1021,7 +1020,7 @@ void TorrentClient::blockReceived(int pieceIndex, int begin, const QByteArray &d
     if (blocksLeftForPiece(piece) == 0) {
         // Ask the file manager to verify the newly downloaded piece
         d->fileManager.verifyPiece(piece->index);
-
+        
         // Remove this piece from all payloads
         QMultiMap<PeerWireClient *, TorrentPiece *>::Iterator it = d->payloads.begin();
         while (it != d->payloads.end()) {
@@ -1104,7 +1103,7 @@ void TorrentClient::scheduleUploads()
         }
 
         if ((client->peerWireState() & PeerWireClient::ChokingPeer) == 0) {
-            if ((qrand() % 10) == 0)
+            if ((qrand() % 10) == 0) 
                 client->abort();
             else
                 client->chokePeer();
@@ -1246,7 +1245,7 @@ void TorrentClient::schedulePieceForClient(PeerWireClient *client)
             if (d->state == WarmingUp || (qrand() & 4) == 0) {
                 int *occurrences = new int[d->pieceCount];
                 memset(occurrences, 0, d->pieceCount * sizeof(int));
-
+                
                 // Count how many of each piece are available.
                 foreach (PeerWireClient *peer, d->connections) {
                     QBitArray peerPieces = peer->availablePieces();
@@ -1343,7 +1342,7 @@ void TorrentClient::requestMore(PeerWireClient *client)
                          ? MaxBlocksInMultiMode : MaxBlocksInProgress);
     if (numBlocksInProgress == maxInProgress)
         return;
-
+    
     // Starting with the first piece that we're waiting for, request
     // blocks until the quota is filled up.
     foreach (TorrentPiece *piece, piecesInProgress) {
@@ -1447,7 +1446,7 @@ void TorrentClient::addToPeerList(const QList<TorrentPeer> &peerList)
             // Skip our own server.
             continue;
         }
-
+		
         bool known = false;
         foreach (TorrentPeer *knownPeer, d->peers) {
             if (knownPeer->port == peer.port

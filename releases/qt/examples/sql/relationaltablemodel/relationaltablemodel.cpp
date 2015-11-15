@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtSql>
 
 #include "../connection.h"
@@ -108,7 +108,11 @@ int main(int argc, char *argv[])
     initializeModel(&model);
 
     QTableView *view = createView(QObject::tr("Relational Table Model"), &model);
+#if defined(Q_OS_SYMBIAN)
+    view->showMaximized();
+#else
     view->show();
+#endif
 
     return app.exec();
 }

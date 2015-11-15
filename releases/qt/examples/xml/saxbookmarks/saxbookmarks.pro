@@ -5,16 +5,26 @@ SOURCES       = main.cpp \
                 mainwindow.cpp \
                 xbelgenerator.cpp \
                 xbelhandler.cpp
-QT           += xml widgets
-
-EXAMPLE_FILES = frank.xbel jennifer.xbel
+QT           += xml
 
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/xml/saxbookmarks
-INSTALLS += target
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS saxbookmarks.pro *.xbel
+sources.path = $$[QT_INSTALL_EXAMPLES]/xml/saxbookmarks
+INSTALLS += target sources
 
-wince {
+wince*: {
      addFiles.files = frank.xbel jennifer.xbel
      addFiles.path = "\\My Documents"
-     INSTALLS += addFiles
+     DEPLOYMENT += addFiles
 }
+
+symbian: {
+     TARGET.UID3 = 0xA000C60A
+     include($$QT_SOURCE_TREE/examples/symbianpkgrules.pri)
+     addFiles.files = frank.xbel jennifer.xbel
+     addFiles.path = /data/qt/saxbookmarks
+     DEPLOYMENT += addFiles
+}
+maemo5: include($$QT_SOURCE_TREE/examples/maemo5pkgrules.pri)
+

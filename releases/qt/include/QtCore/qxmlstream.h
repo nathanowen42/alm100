@@ -5,7 +5,7 @@
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL21$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -27,6 +27,14 @@
 ** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 3.0 as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 3.0 requirements will be
+** met: http://www.gnu.org/copyleft/gpl.html.
+**
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
@@ -42,10 +50,70 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qscopedpointer.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
 
+QT_MODULE(Core)
 
-class Q_CORE_EXPORT QXmlStreamStringRef {
+// QXmlStream* was originally in the QtXml module
+// since we've moved it to QtCore in Qt 4.4.0, we need to
+// keep binary compatibility
+//
+// The list of supported platforms is in:
+//   http://qt.nokia.com/doc/supported_platforms.html
+//
+// These platforms do not support symbol moving nor duplication
+// (because duplicate symbols cause warnings when linking):
+//   Apple MacOS X (Mach-O executable format)
+//       special case: 64-bit on Mac wasn't supported before 4.5.0
+//   IBM AIX (XCOFF executable format)
+//
+// These platforms do not support symbol moving but allow it to be duplicated:
+//   Microsoft Windows (COFF PE executable format)
+//      special case: Windows CE wasn't supported before 4.4.0
+//
+// These platforms support symbol moving:
+//   HP HP-UX (PA-RISC2.0 shared executables)
+//   HP HP-UXi (ELF executable format)
+//   FreeBSD (ELF executable format)
+//   Linux (ELF executable format)
+//   SGI IRIX (ELF executable format)
+//   Sun Solaris (ELF executable format)
+//
+// Other platforms are supported through community contributions only.
+// We are taking the optimist scenario here to avoid creating more
+// symbols to be supported.
+
+#if defined(Q_OS_MAC32) || defined(Q_OS_AIX)
+# if !defined QT_BUILD_XML_LIB
+#  define Q_XMLSTREAM_RENAME_SYMBOLS
+# endif
+#endif
+
+#if defined QT_BUILD_XML_LIB
+# define Q_XMLSTREAM_EXPORT     Q_XML_EXPORT
+#else
+# define Q_XMLSTREAM_EXPORT     Q_CORE_EXPORT
+#endif
+
+#if defined Q_XMLSTREAM_RENAME_SYMBOLS
+// don't worry, we'll undef and change to typedef at the bottom of the file
+# define QXmlStreamAttribute QCoreXmlStreamAttribute
+# define QXmlStreamAttributes QCoreXmlStreamAttributes
+# define QXmlStreamEntityDeclaration QCoreXmlStreamEntityDeclaration
+# define QXmlStreamEntityDeclarations QCoreXmlStreamEntityDeclarations
+# define QXmlStreamEntityResolver QCoreXmlStreamEntityResolver
+# define QXmlStreamNamespaceDeclaration QCoreXmlStreamNamespaceDeclaration
+# define QXmlStreamNamespaceDeclarations QCoreXmlStreamNamespaceDeclarations
+# define QXmlStreamNotationDeclaration QCoreXmlStreamNotationDeclaration
+# define QXmlStreamNotationDeclarations QCoreXmlStreamNotationDeclarations
+# define QXmlStreamReader QCoreXmlStreamReader
+# define QXmlStreamStringRef QCoreXmlStreamStringRef
+# define QXmlStreamWriter QCoreXmlStreamWriter
+#endif
+
+class Q_XMLSTREAM_EXPORT QXmlStreamStringRef {
     QString m_string;
     int m_position, m_size;
 public:
@@ -64,7 +132,7 @@ public:
 
 class QXmlStreamReaderPrivate;
 class QXmlStreamAttributes;
-class Q_CORE_EXPORT QXmlStreamAttribute {
+class Q_XMLSTREAM_EXPORT QXmlStreamAttribute {
     QXmlStreamStringRef m_name, m_namespaceUri, m_qualifiedName, m_value;
     void *reserved;
     uint m_isDefault : 1;
@@ -75,28 +143,6 @@ public:
     QXmlStreamAttribute(const QString &qualifiedName, const QString &value);
     QXmlStreamAttribute(const QString &namespaceUri, const QString &name, const QString &value);
     QXmlStreamAttribute(const QXmlStreamAttribute &);
-#ifdef Q_COMPILER_RVALUE_REFS
-    QXmlStreamAttribute(QXmlStreamAttribute &&other) Q_DECL_NOTHROW // = default;
-        : m_name(std::move(other.m_name)),
-          m_namespaceUri(std::move(other.m_namespaceUri)),
-          m_qualifiedName(std::move(other.m_qualifiedName)),
-          m_value(std::move(other.m_value)),
-          reserved(other.reserved),
-          m_isDefault(other.m_isDefault)
-    {
-        other.reserved = Q_NULLPTR;
-    }
-    QXmlStreamAttribute &operator=(QXmlStreamAttribute &&other) Q_DECL_NOTHROW // = default;
-    {
-        m_name = std::move(other.m_name);
-        m_namespaceUri = std::move(other.m_namespaceUri);
-        m_qualifiedName = std::move(other.m_qualifiedName);
-        m_value = std::move(other.m_value);
-        qSwap(reserved, other.reserved);
-        m_isDefault = other.m_isDefault;
-        return *this;
-    }
-#endif
     QXmlStreamAttribute& operator=(const QXmlStreamAttribute &);
     ~QXmlStreamAttribute();
     inline QStringRef namespaceUri() const { return m_namespaceUri; }
@@ -120,15 +166,15 @@ public:
 
 Q_DECLARE_TYPEINFO(QXmlStreamAttribute, Q_MOVABLE_TYPE);
 
-class Q_CORE_EXPORT QXmlStreamAttributes : public QVector<QXmlStreamAttribute>
+class Q_XMLSTREAM_EXPORT QXmlStreamAttributes : public QVector<QXmlStreamAttribute>
 {
 public:
     inline QXmlStreamAttributes() {}
     QStringRef value(const QString &namespaceUri, const QString &name) const;
-    QStringRef value(const QString &namespaceUri, QLatin1String name) const;
-    QStringRef value(QLatin1String namespaceUri, QLatin1String name) const;
+    QStringRef value(const QString &namespaceUri, const QLatin1String &name) const;
+    QStringRef value(const QLatin1String &namespaceUri, const QLatin1String &name) const;
     QStringRef value(const QString &qualifiedName) const;
-    QStringRef value(QLatin1String qualifiedName) const;
+    QStringRef value(const QLatin1String &qualifiedName) const;
     void append(const QString &namespaceUri, const QString &name, const QString &value);
     void append(const QString &qualifiedName, const QString &value);
 
@@ -137,7 +183,7 @@ public:
         return !value(qualifiedName).isNull();
     }
 
-    inline bool hasAttribute(QLatin1String qualifiedName) const
+    inline bool hasAttribute(const QLatin1String &qualifiedName) const
     {
         return !value(qualifiedName).isNull();
     }
@@ -147,10 +193,15 @@ public:
         return !value(namespaceUri, name).isNull();
     }
 
+#if !defined(Q_NO_USING_KEYWORD)
     using QVector<QXmlStreamAttribute>::append;
+#else
+    inline void append(const QXmlStreamAttribute &attribute)
+        { QVector<QXmlStreamAttribute>::append(attribute); }
+#endif
 };
 
-class Q_CORE_EXPORT QXmlStreamNamespaceDeclaration {
+class Q_XMLSTREAM_EXPORT QXmlStreamNamespaceDeclaration {
     QXmlStreamStringRef m_prefix, m_namespaceUri;
     void *reserved;
 
@@ -173,7 +224,7 @@ public:
 Q_DECLARE_TYPEINFO(QXmlStreamNamespaceDeclaration, Q_MOVABLE_TYPE);
 typedef QVector<QXmlStreamNamespaceDeclaration> QXmlStreamNamespaceDeclarations;
 
-class Q_CORE_EXPORT QXmlStreamNotationDeclaration {
+class Q_XMLSTREAM_EXPORT QXmlStreamNotationDeclaration {
     QXmlStreamStringRef m_name, m_systemId, m_publicId;
     void *reserved;
 
@@ -197,7 +248,7 @@ public:
 Q_DECLARE_TYPEINFO(QXmlStreamNotationDeclaration, Q_MOVABLE_TYPE);
 typedef QVector<QXmlStreamNotationDeclaration> QXmlStreamNotationDeclarations;
 
-class Q_CORE_EXPORT QXmlStreamEntityDeclaration {
+class Q_XMLSTREAM_EXPORT QXmlStreamEntityDeclaration {
     QXmlStreamStringRef m_name, m_notationName, m_systemId, m_publicId, m_value;
     void *reserved;
 
@@ -227,7 +278,7 @@ Q_DECLARE_TYPEINFO(QXmlStreamEntityDeclaration, Q_MOVABLE_TYPE);
 typedef QVector<QXmlStreamEntityDeclaration> QXmlStreamEntityDeclarations;
 
 
-class Q_CORE_EXPORT QXmlStreamEntityResolver
+class Q_XMLSTREAM_EXPORT QXmlStreamEntityResolver
 {
 public:
     virtual ~QXmlStreamEntityResolver();
@@ -236,7 +287,7 @@ public:
 };
 
 #ifndef QT_NO_XMLSTREAMREADER
-class Q_CORE_EXPORT QXmlStreamReader {
+class Q_XMLSTREAM_EXPORT QXmlStreamReader {
     QDOC_PROPERTY(bool namespaceProcessing READ namespaceProcessing WRITE setNamespaceProcessing)
 public:
     enum TokenType {
@@ -255,10 +306,10 @@ public:
 
 
     QXmlStreamReader();
-    explicit QXmlStreamReader(QIODevice *device);
-    explicit QXmlStreamReader(const QByteArray &data);
-    explicit QXmlStreamReader(const QString &data);
-    explicit QXmlStreamReader(const char * data);
+    QXmlStreamReader(QIODevice *device);
+    QXmlStreamReader(const QByteArray &data);
+    QXmlStreamReader(const QString &data);
+    QXmlStreamReader(const char * data);
     ~QXmlStreamReader();
 
     void setDevice(QIODevice *device);
@@ -308,7 +359,8 @@ public:
         IncludeChildElements,
         SkipChildElements
     };
-    QString readElementText(ReadElementTextBehaviour behaviour = ErrorOnUnexpectedElement);
+    QString readElementText(ReadElementTextBehaviour behaviour);
+    QString readElementText();
 
     QStringRef name() const;
     QStringRef namespaceUri() const;
@@ -361,15 +413,15 @@ private:
 
 class QXmlStreamWriterPrivate;
 
-class Q_CORE_EXPORT QXmlStreamWriter
+class Q_XMLSTREAM_EXPORT QXmlStreamWriter
 {
     QDOC_PROPERTY(bool autoFormatting READ autoFormatting WRITE setAutoFormatting)
     QDOC_PROPERTY(int autoFormattingIndent READ autoFormattingIndent WRITE setAutoFormattingIndent)
 public:
     QXmlStreamWriter();
-    explicit QXmlStreamWriter(QIODevice *device);
-    explicit QXmlStreamWriter(QByteArray *array);
-    explicit QXmlStreamWriter(QString *string);
+    QXmlStreamWriter(QIODevice *device);
+    QXmlStreamWriter(QByteArray *array);
+    QXmlStreamWriter(QString *string);
     ~QXmlStreamWriter();
 
     void setDevice(QIODevice *device);
@@ -432,6 +484,8 @@ private:
 #endif // QT_NO_XMLSTREAMWRITER
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
 
 #endif // QT_NO_XMLSTREAM
 #endif // QXMLSTREAM_H

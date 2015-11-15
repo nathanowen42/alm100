@@ -49,6 +49,7 @@ static const int ConnectTimeout = 60 * 1000;
 static const int KeepAliveInterval = 30 * 1000;
 static const int RateControlTimerDelay = 2000;
 static const int MinimalHeaderSize = 48;
+static const int FullHeaderSize = 68;
 static const char ProtocolId[] = "BitTorrent protocol";
 static const char ProtocolIdSize = 19;
 
@@ -215,7 +216,7 @@ void PeerWireClient::sendPieceList(const QBitArray &bitField)
 
     // Don't send the bitfield if it's all zeros.
     if (bitField.count(true) == 0)
-        return;
+	return;
 
     int bitFieldSize = bitField.size();
     int size = (bitFieldSize + 7) / 8;
@@ -374,7 +375,7 @@ qint64 PeerWireClient::uploadSpeed() const
     return sum / (8 * 2);
 }
 
-void PeerWireClient::setReadBufferSize(qint64 size)
+void PeerWireClient::setReadBufferSize(int size)
 {
     socket.setReadBufferSize(size);
 }
@@ -385,15 +386,15 @@ bool PeerWireClient::canTransferMore() const
         || !outgoingBuffer.isEmpty() || !pendingBlocks.isEmpty();
 }
 
-void PeerWireClient::connectToHost(const QHostAddress &address,
-                                   quint16 port, OpenMode openMode)
+void PeerWireClient::connectToHostImplementation(const QString &hostName,
+                                                 quint16 port, OpenMode openMode)
 
 {
     setOpenMode(openMode);
-    socket.connectToHost(address, port, openMode);
+    socket.connectToHost(hostName, port, openMode);
 }
 
-void PeerWireClient::diconnectFromHost()
+void PeerWireClient::diconnectFromHostImplementation()
 {
     socket.disconnectFromHost();
 }

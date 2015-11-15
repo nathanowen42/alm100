@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 
 #include "xbeltree.h"
 
@@ -48,7 +48,7 @@ XbelTree::XbelTree(QWidget *parent)
     QStringList labels;
     labels << tr("Title") << tr("Location");
 
-    header()->setSectionResizeMode(QHeaderView::Stretch);
+    header()->setResizeMode(QHeaderView::Stretch);
     setHeaderLabels(labels);
 
     folderIcon.addPixmap(style()->standardPixmap(QStyle::SP_DirClosedIcon),

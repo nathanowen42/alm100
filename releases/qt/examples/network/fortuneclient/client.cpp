@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtNetwork>
 
 #include "client.h"
@@ -51,35 +51,26 @@ Client::Client(QWidget *parent)
     hostLabel = new QLabel(tr("&Server name:"));
     portLabel = new QLabel(tr("S&erver port:"));
 
-    hostCombo = new QComboBox;
-    hostCombo->setEditable(true);
-    // find out name of this machine
-    QString name = QHostInfo::localHostName();
-    if (!name.isEmpty()) {
-        hostCombo->addItem(name);
-        QString domain = QHostInfo::localDomainName();
-        if (!domain.isEmpty())
-            hostCombo->addItem(name + QChar('.') + domain);
-    }
-    if (name != QString("localhost"))
-        hostCombo->addItem(QString("localhost"));
-    // find out IP addresses of this machine
+    // find out which IP to connect to
+    QString ipAddress;
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // add non-localhost addresses
+    // use the first non-localhost IPv4 address
     for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (!ipAddressesList.at(i).isLoopback())
-            hostCombo->addItem(ipAddressesList.at(i).toString());
+        if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+            ipAddressesList.at(i).toIPv4Address()) {
+            ipAddress = ipAddressesList.at(i).toString();
+            break;
+        }
     }
-    // add localhost addresses
-    for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (ipAddressesList.at(i).isLoopback())
-            hostCombo->addItem(ipAddressesList.at(i).toString());
-    }
+    // if we did not find one, use IPv4 localhost
+    if (ipAddress.isEmpty())
+        ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
 
+    hostLineEdit = new QLineEdit(ipAddress);
     portLineEdit = new QLineEdit;
     portLineEdit->setValidator(new QIntValidator(1, 65535, this));
 
-    hostLabel->setBuddy(hostCombo);
+    hostLabel->setBuddy(hostLineEdit);
     portLabel->setBuddy(portLineEdit);
 
     statusLabel = new QLabel(tr("This examples requires that you run the "
@@ -99,7 +90,7 @@ Client::Client(QWidget *parent)
     tcpSocket = new QTcpSocket(this);
 //! [1]
 
-    connect(hostCombo, SIGNAL(editTextChanged(QString)),
+    connect(hostLineEdit, SIGNAL(textChanged(QString)),
             this, SLOT(enableGetFortuneButton()));
     connect(portLineEdit, SIGNAL(textChanged(QString)),
             this, SLOT(enableGetFortuneButton()));
@@ -116,7 +107,7 @@ Client::Client(QWidget *parent)
 
     QGridLayout *mainLayout = new QGridLayout;
     mainLayout->addWidget(hostLabel, 0, 0);
-    mainLayout->addWidget(hostCombo, 0, 1);
+    mainLayout->addWidget(hostLineEdit, 0, 1);
     mainLayout->addWidget(portLabel, 1, 0);
     mainLayout->addWidget(portLineEdit, 1, 1);
     mainLayout->addWidget(statusLabel, 2, 0, 1, 2);
@@ -129,7 +120,7 @@ Client::Client(QWidget *parent)
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+        QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
         settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
         settings.endGroup();
@@ -159,7 +150,7 @@ void Client::requestNewFortune()
     blockSize = 0;
     tcpSocket->abort();
 //! [7]
-    tcpSocket->connectToHost(hostCombo->currentText(),
+    tcpSocket->connectToHost(hostLineEdit->text(),
                              portLineEdit->text().toInt());
 //! [7]
 }
@@ -233,7 +224,7 @@ void Client::displayError(QAbstractSocket::SocketError socketError)
 void Client::enableGetFortuneButton()
 {
     getFortuneButton->setEnabled((!networkSession || networkSession->isOpen()) &&
-                                 !hostCombo->currentText().isEmpty() &&
+                                 !hostLineEdit->text().isEmpty() &&
                                  !portLineEdit->text().isEmpty());
 
 }
@@ -248,7 +239,7 @@ void Client::sessionOpened()
     else
         id = config.identifier();
 
-    QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+    QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
     settings.beginGroup(QLatin1String("QtNetwork"));
     settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
     settings.endGroup();

@@ -41,7 +41,7 @@
 #include "mainwindow.h"
 #include "dialog.h"
 
-#include <QtWidgets>
+#include <QtGui>
 #include <QtSql>
 #include <QtXml>
 
@@ -77,8 +77,10 @@ MainWindow::MainWindow(const QString &artistTable, const QString &albumTable,
     layout->addWidget(artists, 0, 0);
     layout->addWidget(albums, 1, 0);
     layout->addWidget(details, 0, 1, 2, 1);
+#if !defined(Q_OS_SYMBIAN) && !defined(Q_WS_MAEMO_5)
     layout->setColumnStretch(1, 1);
     layout->setColumnMinimumWidth(0, 500);
+#endif
 
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
@@ -86,7 +88,9 @@ MainWindow::MainWindow(const QString &artistTable, const QString &albumTable,
     createMenuBar();
 
     showImageLabel();
+#if !defined(Q_OS_SYMBIAN) && !defined(Q_WS_MAEMO_5)
     resize(850, 400);
+#endif
     setWindowTitle(tr("Music Archive"));
 }
 
@@ -142,7 +146,7 @@ void MainWindow::showAlbumDetails(QModelIndex index)
             break;
         }
     }
-    if (trackList->count() != 0)
+    if (!trackList->count() == 0)
         trackList->show();
 }
 
@@ -410,7 +414,7 @@ void MainWindow::updateHeader(QModelIndex, int, int)
 void MainWindow::adjustHeader()
 {
     albumView->hideColumn(0);
-    albumView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    albumView->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
     albumView->resizeColumnToContents(2);
     albumView->resizeColumnToContents(3);
 }
@@ -424,6 +428,6 @@ void MainWindow::about()
                "are kept in a database, while each album's tracks are stored "
                "in an XML file. </p><p>The example also shows how to add as "
                "well as remove data from both the database and the "
-               "associated XML file using the API provided by the Qt SQL and "
-               "Qt XML modules, respectively.</p>"));
+               "associated XML file using the API provided by the QtSql and "
+               "QtXml modules, respectively.</p>"));
 }

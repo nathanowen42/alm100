@@ -45,7 +45,6 @@
 #include "trackerclient.h"
 
 #include <QtCore>
-#include <QNetworkRequest>
 
 TrackerClient::TrackerClient(TorrentClient *downloader, QObject *parent)
     : QObject(parent), torrentDownloader(downloader)
@@ -57,7 +56,7 @@ TrackerClient::TrackerClient(TorrentClient *downloader, QObject *parent)
     lastTrackerRequest = false;
     firstSeeding = true;
 
-    connect(&http, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
+    connect(&http, SIGNAL(done(bool)), this, SLOT(httpRequestDone(bool)));
 }
 
 void TrackerClient::start(const MetaInfo &info)
@@ -83,13 +82,15 @@ void TrackerClient::startSeeding()
 void TrackerClient::stop()
 {
     lastTrackerRequest = true;
+    http.abort();
     fetchPeerList();
 }
 
 void TrackerClient::timerEvent(QTimerEvent *event)
 {
     if (event->timerId() == requestIntervalTimer) {
-        fetchPeerList();
+        if (http.state() == QHttp::Unconnected)
+            fetchPeerList();
     } else {
         QObject::timerEvent(event);
     }
@@ -97,82 +98,82 @@ void TrackerClient::timerEvent(QTimerEvent *event)
 
 void TrackerClient::fetchPeerList()
 {
-    QUrl url(metaInfo.announceUrl());
-
-    // Base the query on announce url to include a passkey (if any)
-    QUrlQuery query(url);
+    // Prepare connection details
+    QString fullUrl = metaInfo.announceUrl();
+    QUrl url(fullUrl);
+    QString passkey = "?";
+    if (fullUrl.contains("?passkey")) {
+        passkey = metaInfo.announceUrl().mid(fullUrl.indexOf("?passkey"), -1);
+        passkey += '&';
+    }
 
     // Percent encode the hash
     QByteArray infoHash = torrentDownloader->infoHash();
-    QByteArray encodedSum;
+    QString encodedSum;
     for (int i = 0; i < infoHash.size(); ++i) {
         encodedSum += '%';
-        encodedSum += QByteArray::number(infoHash[i], 16).right(2).rightJustified(2, '0');
+        encodedSum += QString::number(infoHash[i], 16).right(2).rightJustified(2, '0');
     }
 
     bool seeding = (torrentDownloader->state() == TorrentClient::Seeding);
-
-    query.addQueryItem("info_hash", encodedSum);
-    query.addQueryItem("peer_id", ConnectionManager::instance()->clientId());
-    query.addQueryItem("port", QByteArray::number(TorrentServer::instance()->serverPort()));
-    query.addQueryItem("compact", "1");
-    query.addQueryItem("uploaded", QByteArray::number(torrentDownloader->uploadedBytes()));
+    QByteArray query;
+    query += url.path().toLatin1();
+    query += passkey;
+    query += "info_hash=" + encodedSum;
+    query += "&peer_id=" + ConnectionManager::instance()->clientId();
+    query += "&port=" + QByteArray::number(TorrentServer::instance()->serverPort());
+    query += "&compact=1";
+    query += "&uploaded=" + QByteArray::number(torrentDownloader->uploadedBytes());
 
     if (!firstSeeding) {
-        query.addQueryItem("downloaded", "0");
-        query.addQueryItem("left", "0");
+        query += "&downloaded=0";
+        query += "&left=0";
     } else {
-        query.addQueryItem("downloaded",
-                           QByteArray::number(torrentDownloader->downloadedBytes()));
+        query += "&downloaded=" + QByteArray::number(
+            torrentDownloader->downloadedBytes());
         int left = qMax<int>(0, metaInfo.totalSize() - torrentDownloader->downloadedBytes());
-        query.addQueryItem("left", QByteArray::number(seeding ? 0 : left));
+        query += "&left=" + QByteArray::number(seeding ? 0 : left);
     }
 
     if (seeding && firstSeeding) {
-        query.addQueryItem("event", "completed");
+        query += "&event=completed";
         firstSeeding = false;
     } else if (firstTrackerRequest) {
         firstTrackerRequest = false;
-        query.addQueryItem("event", "started");
+        query += "&event=started";
     } else if(lastTrackerRequest) {
-        query.addQueryItem("event", "stopped");
+        query += "&event=stopped";
     }
 
     if (!trackerId.isEmpty())
-        query.addQueryItem("trackerid", trackerId);
+        query += "&trackerid=" + trackerId;
 
-    url.setQuery(query);
-
-    QNetworkRequest req(url);
-    if (!url.userName().isEmpty()) {
-        uname = url.userName();
-        pwd = url.password();
-        connect(&http, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
-                this, SLOT(provideAuthentication(QNetworkReply*,QAuthenticator*)));
-    }
-    http.get(req);
+    http.setHost(url.host(), url.port() == -1 ? 80 : url.port());
+    if (!url.userName().isEmpty())
+        http.setUser(url.userName(), url.password());
+    http.get(query);
 }
 
-void TrackerClient::httpRequestDone(QNetworkReply *reply)
+void TrackerClient::httpRequestDone(bool error)
 {
-    reply->deleteLater();
     if (lastTrackerRequest) {
         emit stopped();
         return;
     }
 
-    if (reply->error() != QNetworkReply::NoError) {
-        emit connectionError(reply->error());
+    if (error) {
+        emit connectionError(http.error());
         return;
     }
 
-    QByteArray response = reply->readAll();
-    reply->abort();
+    QByteArray response = http.readAll();
+    http.abort();
 
     BencodeParser parser;
     if (!parser.parse(response)) {
         qWarning("Error parsing bencode response from tracker: %s",
                  qPrintable(parser.errorString()));
+        http.abort();
         return;
     }
 
@@ -232,11 +233,4 @@ void TrackerClient::httpRequestDone(QNetworkReply *reply)
         }
         emit peerListUpdated(peers);
     }
-}
-
-void TrackerClient::provideAuthentication(QNetworkReply *reply, QAuthenticator *auth)
-{
-    Q_UNUSED(reply);
-    auth->setUser(uname);
-    auth->setPassword(pwd);
 }

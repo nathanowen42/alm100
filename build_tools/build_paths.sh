@@ -1,3 +1,2 @@
 #!/bin/bash
-BUILD_TOP='pwd'
-TOOLCHAIN=${BUILD_TOP}/toolchains/i686-arago-linux/usr/bin/
+TOOLCHAIN=/usr/local/alm_ref/build_tools/toolchains/gcc-linaro-4.9-2015.05-x86_64_arm-linux-gnueabihf/bin

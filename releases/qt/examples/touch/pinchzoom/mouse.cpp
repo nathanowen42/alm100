@@ -63,7 +63,7 @@ Mouse::Mouse()
     : angle(0), speed(0), mouseEyeDirection(0),
       color(qrand() % 256, qrand() % 256, qrand() % 256)
 {
-    setTransform(QTransform().rotate(qrand() % (360 * 16)), true);
+    rotate(qrand() % (360 * 16));
     startTimer(1000 / 33);
 }
 //! [0]
@@ -158,7 +158,7 @@ void Mouse::timerEvent(QTimerEvent *)
     foreach (QGraphicsItem *item, dangerMice) {
         if (item == this)
             continue;
-
+        
         QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
         qreal angleToMouse = ::acos(lineToMouse.dx() / lineToMouse.length());
         if (lineToMouse.dy() < 0)
@@ -193,7 +193,7 @@ void Mouse::timerEvent(QTimerEvent *)
     qreal dx = ::sin(angle) * 10;
     mouseEyeDirection = (qAbs(dx / 5) < 1) ? 0 : dx / 5;
 
-    setTransform(QTransform().rotate(dx), true);
+    rotate(dx);
     setPos(mapToParent(0, -(3 + sin(speed) * 3)));
 }
 //! [11]

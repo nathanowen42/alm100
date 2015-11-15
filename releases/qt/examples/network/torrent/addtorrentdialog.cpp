@@ -48,14 +48,16 @@
 
 static QString stringNumber(qint64 number)
 {
+    QString tmp;
     if (number > (1024 * 1024 * 1024))
-        return QString::asprintf("%.2fGB", number / (1024.0 * 1024.0 * 1024.0));
+        tmp.sprintf("%.2fGB", number / (1024.0 * 1024.0 * 1024.0));
     else if (number > (1024 * 1024))
-        return QString::asprintf("%.2fMB", number / (1024.0 * 1024.0));
+        tmp.sprintf("%.2fMB", number / (1024.0 * 1024.0));
     else if (number > (1024))
-        return QString::asprintf("%.2fKB", number / (1024.0));
+        tmp.sprintf("%.2fKB", number / (1024.0));
     else
-        return QString::asprintf("%d bytes", int(number));
+        tmp.sprintf("%d bytes", int(number));
+    return tmp;
 }
 
 AddTorrentDialog::AddTorrentDialog(QWidget *parent)
@@ -115,14 +117,14 @@ void AddTorrentDialog::setTorrent(const QString &torrentFile)
 
     if (lastDestinationDirectory.isEmpty())
         lastDestinationDirectory = lastDirectory;
-
+    
     MetaInfo metaInfo;
     QFile torrent(torrentFile);
     if (!torrent.open(QFile::ReadOnly) || !metaInfo.parse(torrent.readAll())) {
         enableOkButton();
         return;
     }
-
+    
     ui.torrentFile->setText(torrentFile);
     ui.announceUrl->setText(metaInfo.announceUrl());
     if (metaInfo.comment().isEmpty())

@@ -63,7 +63,7 @@ struct TorrentBlock
                 && offset == other.offset
                 && length == other.length;
     }
-
+    
     int pieceIndex;
     int offset;
     int length;
@@ -82,7 +82,7 @@ public:
     };
     Q_DECLARE_FLAGS(PeerWireState, PeerWireStateFlag)
 
-    explicit PeerWireClient(const QByteArray &peerId, QObject *parent = 0);
+    PeerWireClient(const QByteArray &peerId, QObject *parent = 0);
     void initialize(const QByteArray &infoHash, int pieceCount);
 
     void setPeer(TorrentPeer *peer);
@@ -112,15 +112,11 @@ public:
     qint64 uploadSpeed() const;
 
     bool canTransferMore() const;
-    qint64 bytesAvailable() const Q_DECL_OVERRIDE { return incomingBuffer.size() + QTcpSocket::bytesAvailable(); }
+    qint64 bytesAvailable() const { return incomingBuffer.size() + QTcpSocket::bytesAvailable(); }
     qint64 socketBytesAvailable() const { return socket.bytesAvailable(); }
     qint64 socketBytesToWrite() const { return socket.bytesToWrite(); }
 
-    void setReadBufferSize(qint64 size) Q_DECL_OVERRIDE;
-
-    void connectToHost(const QHostAddress &address,
-                       quint16 port, OpenMode openMode = ReadWrite) Q_DECL_OVERRIDE;
-    void diconnectFromHost();
+    void setReadBufferSize(int size);
 
 signals:
     void infoHashReceived(const QByteArray &infoHash);
@@ -137,12 +133,17 @@ signals:
 
     void bytesReceived(qint64 size);
 
-protected:
-    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+protected slots:
+    void connectToHostImplementation(const QString &hostName,
+                                     quint16 port, OpenMode openMode = ReadWrite);
+    void diconnectFromHostImplementation();
 
-    qint64 readData(char *data, qint64 maxlen) Q_DECL_OVERRIDE;
-    qint64 readLineData(char *data, qint64 maxlen) Q_DECL_OVERRIDE;
-    qint64 writeData(const char *data, qint64 len) Q_DECL_OVERRIDE;
+protected:
+    void timerEvent(QTimerEvent *event);
+
+    qint64 readData(char *data, qint64 maxlen);
+    qint64 readLineData(char *data, qint64 maxlen);
+    qint64 writeData(const char *data, qint64 len);
 
 private slots:
     void sendHandShake();

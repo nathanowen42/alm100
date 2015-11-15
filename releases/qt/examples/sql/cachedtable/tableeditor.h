@@ -55,7 +55,7 @@ class TableEditor : public QWidget
     Q_OBJECT
 
 public:
-    explicit TableEditor(const QString &tableName, QWidget *parent = 0);
+    TableEditor(const QString &tableName, QWidget *parent = 0);
 
 private slots:
     void submit();
