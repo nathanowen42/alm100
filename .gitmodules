@@ -7,9 +7,6 @@
 [submodule "opensource/linux/ti-linux-kernel"]
 	path = opensource/linux/ti-linux-kernel
 	url = git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git
-[submodule "opensource/qt/qt5"]
-	path = opensource/qt/qt5
-	url = git://code.qt.io/qt/qt5.git
 [submodule "opensource/tslib/tslib"]
 	path = opensource/tslib/tslib
 	url = https://github.com/kergoth/tslib.git

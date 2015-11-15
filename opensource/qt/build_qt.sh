@@ -7,15 +7,16 @@ TARGET_INSTALL_PATH=/opt/qt
 INSTALL_DIR=${TOPDIR}/build
 PROCESSOR_CONF_DIR=${QT_DIR}/qtbase/mkspecs/linux-arm-gnueabi-ti-g++/
 TSLIB_DIR=${QT_DIR}/qtbase/src/plugins/generic/tslib/
+TOOLCHAIN=/usr/local/alm_ref/build_tools/toolchains/gcc-linaro-4.9-2015.05-x86_64_arm-linux-gnueabihf
 
-source ${TOPDIR}/../../build_tools/build_paths.sh
+#source ${TOPDIR}/../../build_tools/build_paths.sh
 
-rm -rf ${PROCESSOR_CONF_DIR}
-mkdir ${PROCESSOR_CONF_DIR}
+#rm -rf ${PROCESSOR_CONF_DIR}
+#mkdir ${PROCESSOR_CONF_DIR}
 
 cp -v ${PATCH_DIR}/* ${QT_DIR}/
 cp -va ${PATCH_DIR}/linux-arm-gnueabi-ti-g++/. ${PROCESSOR_CONF_DIR}/
-cp -v ${CONFIG_FILE} ${PROCESSOR_CONF_DIR}/
+#cp -v ${CONFIG_FILE} ${PROCESSOR_CONF_DIR}/
 
 if [ ! -d "${INSTALL_DIR}" ]; then
         mkdir ${INSTALL_DIR}
@@ -23,7 +24,7 @@ fi
 
 export QMAKESPEC=
 
-export PATH=${TOOLCHAIN}/bin:${TARGET_INSTALL_PATH}/qtbase/bin:${PATH}
+export PATH=/opt/ti-processor-sdk-linux-am335x-evm-02.00.00.00/linux-devkit/sysroots/x86_64-arago-linux/usr/bin:${QT_DIR}/qtbase/bin:${TARGET_INSTALL_PATH}/qtbase/bin:${PATH}
 
 cd ${QT_DIR}
 ./configure -prefix ${TARGET_INSTALL_PATH} -release -make libs -xplatform linux-arm-gnueabi-ti-g++ -opengl es2 -confirm-license -opensource -icu -no-xcb -no-pch -make examples -verbose
