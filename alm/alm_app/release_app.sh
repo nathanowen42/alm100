@@ -1,14 +1,6 @@
 #!/bin/bash
 
 TOPDIR=`pwd`
-REL_DIR=${TOPDIR}/../../releases/app
+ROOTDIR=${TOPDIR}/../../alm100
 
-if [ ! -d "${REL_DIR}" ]; then
-	mkdir ${REL_DIR}
-fi
-
-if [ ! -d "${REL_DIR}/opt" ]; then
-        mkdir ${REL_DIR}/opt
-fi
-
-cp -v alm_app ${REL_DIR}/opt/alm_app
+cp -v alm_app ${ROOTDIR}/opt/alm_app

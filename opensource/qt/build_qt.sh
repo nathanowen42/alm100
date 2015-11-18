@@ -13,9 +13,8 @@ TOOLCHAIN=/usr/local/alm_ref/build_tools/toolchains/gcc-linaro-4.9-2015.05-x86_6
 
 cp -av ${PATCH_DIR}/. ${QT_DIR}/
 
-if [ ! -d "${INSTALL_DIR}" ]; then
-        mkdir ${INSTALL_DIR}
-fi
+rm -rf ${INSTALL_DIR}
+mkdir ${INSTALL_DIR}
 
 #export QMAKESPEC=
 
