@@ -8,6 +8,7 @@ RELEASE_DIR=${TOP_DIR}/releases
 ROOTFS_DIR=${BUILD_DIR}/rootfs
 PROD_DIR=${TOP_DIR}/alm100
 QT_REL=${RELEASE_DIR}/qt/qt4.tar.gz
+CLIBS_REL=${RELEASE_DIR}/libs/clibs.tar.gz
 
 #release images
 BUSYBOX_IMAGE=${RELEASE_DIR}/busybox.tar.gz
@@ -44,6 +45,9 @@ cp -va ${PROD_DIR}/. ${ROOTFS_DIR}
 
 #Copy QT files
 tar xfvz ${QT_REL} -C ${ROOTFS_DIR}
+
+#Copy libs
+tar xfvz ${CLIBS_REL} -C ${ROOTFS_DIR}/usr/lib/
 
 #write image
 rm -f ${ROOTFS_IMG}
