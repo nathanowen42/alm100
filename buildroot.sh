@@ -35,10 +35,15 @@ ln -s rtc0 ${ROOTFS_DIR}/dev/rtc
 mknod ${ROOTFS_DIR}/dev/mmcblk0 b 179 0
 mknod ${ROOTFS_DIR}/dev/mmcblk0p1 b 179 1
 mknod ${ROOTFS_DIR}/dev/sda b 8 0
-mknod  ${ROOTFS_DIR}/dev/sda1 b 8 1
+mknod ${ROOTFS_DIR}/dev/sda1 b 8 1
+mknod ${ROOTFS_DIR}/dev/fb0 c 29 0
 
 #copy busybox files
 tar xvfz ${RELEASE_DIR}/root/busybox.tar.gz -C ${ROOTFS_DIR}
+
+#create busybox tmp file
+mkdir -p ${ROOTFS_DIR}/tmp/qtembedded-0
+chmod 700 ${ROOTFS_DIR}/tmp/qtembedded-0
 
 #copy product specific files (includes all scritps, application binarys, and product files)
 cp -va ${PROD_DIR}/. ${ROOTFS_DIR}

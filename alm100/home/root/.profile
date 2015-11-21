@@ -1,3 +1,3 @@
-PATH=/opt/qt/bin:$PATH
+PATH=/opt/qt/bin:/usr/lib:$PATH
 export PATH
 

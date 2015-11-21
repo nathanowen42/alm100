@@ -22,7 +22,7 @@ mkdir ${INSTALL_DIR}
 
 cd ${QT_DIR}
 
-./configure -prefix ${TARGET_INSTALL_PATH} -embedded arm -platform qws/linux-x86-g++ -xplatform qws/linux-am335x-g++ -depths 16,24,32 -little-endian -opensource -confirm-license -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups -no-largefile -no-accessibility -no-openssl -no-gtkstyle -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput -plugin-mouse-linuxtp -plugin-mouse-pc -fast -no-webkit
+./configure -prefix ${TARGET_INSTALL_PATH} -embedded arm -platform qws/linux-x86-g++ -xplatform qws/linux-am335x-g++ -depths 16,24,32 -little-endian -static -opensource -confirm-license -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups -no-largefile -no-accessibility -no-openssl -no-gtkstyle -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput -plugin-mouse-linuxtp -plugin-mouse-pc -fast -no-webkit
 
 printf "make clean"
 make clean -j12 1>/dev/null
