@@ -4,7 +4,7 @@ Please email me for any issues or concerns.
 All build scrpts are compatable with Ubuntu 15.04
 Other dirstros may require modifications to build scripts
 
-Before running build scrpts, run setup_build_environment.sh script to install required packages
+Before running build scripts, run setup_build_environment.sh script to install required packages
 
 Each folder contains
 1. A git submodule from the opensource provider
